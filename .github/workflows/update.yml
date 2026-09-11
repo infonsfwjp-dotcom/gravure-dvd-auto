@@ -1,0 +1,33 @@
+name: auto-update
+on:
+  schedule:
+    - cron: "17 18 * * *" # 03:17 JST
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - name: Scrape 3 manufacturers
+        run: python -m scraper.run_all
+      - name: Match FANZA/DMM
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
+          DMM_SITE: FANZA
+        run: python -m affiliate.dmm_fanza
+      - name: Generate static site
+        run: python site/generate.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/products.json dist/ data/scrape_errors.log || true
+          git diff --cached --quiet || git commit -m "chore: auto-update releases"
+          git push
