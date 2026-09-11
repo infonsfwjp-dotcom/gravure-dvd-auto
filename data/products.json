@@ -7,7 +7,7 @@
     "jan": "9784801995413",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10194747.html",
-    "source_checked_at": "2026-09-11T21:12:47.529384+00:00",
+    "source_checked_at": "2026-09-11T21:22:40.825869+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -15,7 +15,8 @@
       "竹書房"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801995413&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -25,7 +26,7 @@
     "jan": "9784801995277",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10172125.html",
-    "source_checked_at": "2026-09-11T21:12:54.183589+00:00",
+    "source_checked_at": "2026-09-11T21:22:43.478968+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -33,7 +34,8 @@
       "竹書房"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801995277&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -43,7 +45,7 @@
     "jan": "9784801994485",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10169420.html",
-    "source_checked_at": "2026-09-11T21:12:46.380050+00:00",
+    "source_checked_at": "2026-09-11T21:22:45.441480+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -51,7 +53,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801994485&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -61,7 +64,7 @@
     "jan": "9784801994171",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10168168.html",
-    "source_checked_at": "2026-09-11T21:12:42.718549+00:00",
+    "source_checked_at": "2026-09-11T21:22:47.448966+00:00",
     "tags": [
       "2026年",
       "2026年6月",
@@ -69,7 +72,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801994171&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -79,7 +83,7 @@
     "jan": "9784801949454",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10159491.html",
-    "source_checked_at": "2026-09-11T21:12:48.448789+00:00",
+    "source_checked_at": "2026-09-11T21:22:40.117947+00:00",
     "tags": [
       "2026年",
       "2026年4月",
@@ -87,7 +91,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801949454&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -97,7 +102,7 @@
     "jan": "9784801948990",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10155783.html",
-    "source_checked_at": "2026-09-11T21:12:53.448160+00:00",
+    "source_checked_at": "2026-09-11T21:22:39.466041+00:00",
     "tags": [
       "2026年",
       "2026年3月",
@@ -105,7 +110,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801948990&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -115,7 +121,7 @@
     "jan": "9784801948044",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10152160.html",
-    "source_checked_at": "2026-09-11T21:12:52.184689+00:00",
+    "source_checked_at": "2026-09-11T21:22:41.533398+00:00",
     "tags": [
       "2025年",
       "2025年12月",
@@ -123,7 +129,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801948044&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -133,7 +140,7 @@
     "jan": "9784801948037",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10152162.html",
-    "source_checked_at": "2026-09-11T21:12:50.020999+00:00",
+    "source_checked_at": "2026-09-11T21:22:44.125505+00:00",
     "tags": [
       "2025年",
       "2025年12月",
@@ -141,7 +148,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801948037&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -151,7 +159,7 @@
     "jan": "9784801946903",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10143469.html",
-    "source_checked_at": "2026-09-11T21:12:43.317027+00:00",
+    "source_checked_at": "2026-09-11T21:22:38.815824+00:00",
     "tags": [
       "2025年",
       "2025年9月",
@@ -159,7 +167,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801946903&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -169,7 +178,7 @@
     "jan": "9784801945777",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10135481.html",
-    "source_checked_at": "2026-09-11T21:12:49.052191+00:00",
+    "source_checked_at": "2026-09-11T21:22:46.115538+00:00",
     "tags": [
       "2025年",
       "2025年7月",
@@ -177,7 +186,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801945777&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -187,7 +197,7 @@
     "jan": "9784801945425",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10134585.html",
-    "source_checked_at": "2026-09-11T21:12:40.424661+00:00",
+    "source_checked_at": "2026-09-11T21:22:42.178684+00:00",
     "tags": [
       "2025年",
       "2025年6月",
@@ -195,7 +205,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801945425&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -205,7 +216,7 @@
     "jan": "9784801944657",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10134612.html",
-    "source_checked_at": "2026-09-11T21:12:46.983557+00:00",
+    "source_checked_at": "2026-09-11T21:22:46.766951+00:00",
     "tags": [
       "2025年",
       "2025年4月",
@@ -213,7 +224,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801944657&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -223,7 +235,7 @@
     "jan": "9784801943575",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10105637.html",
-    "source_checked_at": "2026-09-11T21:12:41.789584+00:00",
+    "source_checked_at": "2026-09-11T21:22:44.795024+00:00",
     "tags": [
       "2025年",
       "2025年1月",
@@ -231,7 +243,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801943575&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -241,7 +254,7 @@
     "jan": "9784801943247",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10105309.html",
-    "source_checked_at": "2026-09-11T21:12:45.826023+00:00",
+    "source_checked_at": "2026-09-11T21:22:48.105665+00:00",
     "tags": [
       "2024年",
       "2024年12月",
@@ -249,7 +262,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801943247&hits=20&output=json"
   },
   {
     "maker": "竹書房",
@@ -259,7 +273,7 @@
     "jan": "9784801948600",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10154694.html",
-    "source_checked_at": "2026-09-11T21:12:51.106448+00:00",
+    "source_checked_at": "2026-09-11T21:22:42.827024+00:00",
     "tags": [
       "2000年",
       "2000年2月",
@@ -267,6 +281,7 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "not_found"
+    "affiliate_match_status": "error",
+    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-003&site=FANZA&service=digital&floor=videoa&keyword=9784801948600&hits=20&output=json"
   }
 ]
