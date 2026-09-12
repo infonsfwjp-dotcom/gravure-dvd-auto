@@ -9,7 +9,9 @@ import requests
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
-SITE = os.getenv("DMM_SITE", "FANZA")
+# DMM Web API accepts DMM.com / DMM.co.jp here; FANZA is the affiliate destination,
+# not the API `site` value.
+SITE = os.getenv("DMM_SITE", "DMM.com")
 DATA = Path(__file__).resolve().parents[1] / "data/products.json"
 
 
