@@ -25,6 +25,8 @@ jobs:
           DMM_SITE: FANZA
         run: python -m affiliate.dmm_fanza
       - name: Generate static site
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
         run: python site/generate.py
       - name: Post newly discovered releases to X
         env:
