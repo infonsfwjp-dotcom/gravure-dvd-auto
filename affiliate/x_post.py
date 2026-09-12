@@ -31,17 +31,28 @@ def text_for(p):
     date = str(p.get("release_date") or "")
     talent = "、".join(p.get("talent") or [])
     url = str(p.get("affiliate_url") or "")
-    lines = ["【新作グラビアDVD】", title]
+    hashtags = "#グラビアDVD #新作DVD"
+    fixed = "【新作グラビアDVD】"
+    optional = []
     if talent:
-        lines.append(f"出演：{talent}")
+        optional.append(f"出演：{talent}")
     if date:
-        lines.append(f"発売日：{date}")
+        optional.append(f"発売日：{date}")
     if maker:
-        lines.append(f"メーカー：{maker}")
-    if url:
-        lines.append(f"FANZA：{url}")
-    lines.append("#グラビアDVD #新作DVD")
-    return "\n".join(lines)[:280]
+        optional.append(f"メーカー：{maker}")
+    tail = "\n" + hashtags + (f"\nFANZA：{url}" if url else "")
+    base = fixed + "\n" + title + ("\n" + "\n".join(optional) if optional else "")
+    if len(base + tail) <= 280:
+        return base + tail
+    result = fixed + "\n" + title
+    for line in optional:
+        candidate = result + "\n" + line + tail
+        if len(candidate) <= 280:
+            result += "\n" + line
+    if len(result + tail) <= 280:
+        return result + tail
+    max_title = max(1, 280 - len(fixed + "\n" + tail) - 1)
+    return fixed + "\n" + title[:max_title] + "…" + tail
 
 
 def post(text):
