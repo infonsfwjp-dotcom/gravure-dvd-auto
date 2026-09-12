@@ -61,6 +61,7 @@ def search(p):
 def enrich():
     products = json.loads(DATA.read_text(encoding="utf-8")) if DATA.exists() else []
     for p in products:
+        p.pop("affiliate_error", None)
         try:
             ranked = sorted(((score(p, i), i) for i in search(p)), key=lambda x: x[0], reverse=True)
             if not ranked:
