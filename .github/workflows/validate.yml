@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-      - run: python -m site.generate
+      - run: python site/generate.py
       - name: Check required files
         run: |
           test -f dist/index.html
