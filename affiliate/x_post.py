@@ -41,8 +41,7 @@ def text_for(p):
     if url:
         lines.append(f"FANZA：{url}")
     lines.append("#グラビアDVD #新作DVD")
-    text = "\n".join(lines)
-    return text[:275] if len(text) > 280 else text
+    return "\n".join(lines)[:280]
 
 
 def post(text):
@@ -60,12 +59,9 @@ def main():
     changed = False
     for p in current:
         k = key(p)
-        if k in before_keys or k in posted:
+        if k in before_keys or posted.get(k, {}).get("status") == "posted":
             continue
-        # Prefer posts with a confirmed FANZA affiliate URL; this avoids dead purchase links.
         if p.get("affiliate_match_status") != "matched" or not p.get("affiliate_url"):
-            posted[k] = {"status": "pending", "title": p.get("title"), "release_date": p.get("release_date")}
-            changed = True
             continue
         tweet_id = post(text_for(p))
         posted[k] = {"status": "posted", "tweet_id": tweet_id, "title": p.get("title"), "release_date": p.get("release_date")}
