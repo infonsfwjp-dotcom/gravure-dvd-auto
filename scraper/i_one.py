@@ -8,28 +8,50 @@ BASE="https://www.i-one-net.com"
 MAKER="ラインコミュニケーションズ / I-ONE"
 ID="i-one"
 
+CATEGORIES=(
+    "スレンダー系", "グラマー系", "いもうと系", "お姉さま系", "癒し系", "ドキドキ系", "清楚系",
+    "スレンダー", "グラマー", "いもうと", "お姉さま", "癒し", "ドキドキ", "清楚",
+)
+
+
+def clean_performer(value):
+    text=clean(value).strip(" ・|｜:：")
+    for cat in CATEGORIES:
+        text=re.sub(rf"(?:^|[ ・|｜]+){re.escape(cat)}(?=$|[ ・|｜]+)", " ", text)
+    text=re.sub(r"\s+", " ", text).strip(" ・|｜:：")
+    return text
+
 
 def parse(url, s):
     txt=clean(s.get_text(" ",strip=True))
-    # I-ONE item pages use the performer and work title in a heading such as
-    # `柳瀬 さき 「ずっとそばにいて」`. The global HTML <title> is not useful.
     title=None
     talent=[]
     for node in s.select("h1,h2,h3"):
         t=clean(node.get_text(" ",strip=True))
         m=re.search(r"(.+?)\s*[「『](.+?)[」』]",t)
         if m and "アイドルワン" not in t:
-            talent=[m.group(1).strip()]
-            title=m.group(2).strip()
-            break
-    if not title:
-        # Search the item content before falling back to the first heading.
-        for m in re.finditer(r"([^「『<>]{1,40})\s*[「『]([^」』]{1,100})[」』]",txt):
-            performer,work=m.group(1).strip(),m.group(2).strip()
-            if performer and work and "アイドルワン" not in performer and work not in {"次回作","制作中"}:
+            performer=clean_performer(m.group(1))
+            work=m.group(2).strip()
+            if performer and work and work not in {"次回作","制作中","発売中","新作"}:
                 talent=[performer]
                 title=work
                 break
+    if not title:
+        candidates=[]
+        for m in re.finditer(r"([^「『<>]{1,50})\s*[「『]([^」』]{1,100})[」』]",txt):
+            performer=clean_performer(m.group(1))
+            work=m.group(2).strip()
+            if performer and work and "アイドルワン" not in performer and work not in {"次回作","制作中","発売中","新作"}:
+                candidates.append((performer,work))
+        for performer,work in candidates:
+            if len(performer) <= 20:
+                talent=[performer]
+                title=work
+                break
+        if not title and candidates:
+            talent=[candidates[0][0]]
+            title=candidates[0][1]
+
     date=parse_japanese_date(txt)
     code=None
     for pat in [
@@ -45,6 +67,11 @@ def parse(url, s):
         title=clean(heading.get_text(" ",strip=True) if heading else "")
         if "アイドルワン" in title:
             title=code or url.rstrip("/").split("/")[-1]
+
+    if talent:
+        cleaned=clean_performer(talent[0])
+        talent=[cleaned] if cleaned else []
+
     return add_common_tags({
         "maker":MAKER,"maker_id":ID,"title":title,"release_date":date,
         "product_code":code,"talent":talent,"source_url":url,"source_checked_at":now(),
