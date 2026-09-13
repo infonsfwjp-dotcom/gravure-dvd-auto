@@ -9,7 +9,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 ねぎとろまる"
     ],
     "source_url": "https://www.i-one-net.com/item/1987",
-    "source_checked_at": "2026-09-13T14:16:10.531094+00:00",
+    "source_checked_at": "2026-09-13T14:24:25.766628+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -17,8 +17,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41464&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -30,7 +29,7 @@
       "超ハイテンションで小悪魔的なゆるギャル"
     ],
     "source_url": "https://www.i-one-net.com/item/1990",
-    "source_checked_at": "2026-09-13T14:16:12.383120+00:00",
+    "source_checked_at": "2026-09-13T14:24:28.497886+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -38,8 +37,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCYV-41467&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -51,7 +49,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 真田 まこと"
     ],
     "source_url": "https://www.i-one-net.com/item/1984",
-    "source_checked_at": "2026-09-13T14:16:08.603500+00:00",
+    "source_checked_at": "2026-09-13T14:24:22.888885+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -59,8 +57,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41461&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -72,7 +69,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 甘党 もも"
     ],
     "source_url": "https://www.i-one-net.com/item/1989",
-    "source_checked_at": "2026-09-13T14:16:11.750605+00:00",
+    "source_checked_at": "2026-09-13T14:24:27.466841+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -80,8 +77,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41466&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -93,7 +89,7 @@
       "もうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 百合川 サシャ"
     ],
     "source_url": "https://www.i-one-net.com/item/1988",
-    "source_checked_at": "2026-09-13T14:16:11.137540+00:00",
+    "source_checked_at": "2026-09-13T14:24:26.452693+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -101,9 +97,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 45,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41465&hits=100&sort=match&output=json"
+    "affiliate_match_status": "review",
+    "affiliate_match_score": 45
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -115,7 +110,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 朝比奈 祐未"
     ],
     "source_url": "https://www.i-one-net.com/item/1985",
-    "source_checked_at": "2026-09-13T14:16:09.240288+00:00",
+    "source_checked_at": "2026-09-13T14:24:23.728996+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -123,8 +118,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41462&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -136,7 +130,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 小野 たまり"
     ],
     "source_url": "https://www.i-one-net.com/item/1986",
-    "source_checked_at": "2026-09-13T14:16:09.920265+00:00",
+    "source_checked_at": "2026-09-13T14:24:24.788034+00:00",
     "tags": [
       "2026年",
       "2026年11月",
@@ -144,8 +138,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41463&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "竹書房",
@@ -155,7 +148,7 @@
     "jan": "9784801995413",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10194747.html",
-    "source_checked_at": "2026-09-13T14:16:35.979150+00:00",
+    "source_checked_at": "2026-09-13T14:24:42.096560+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -163,8 +156,7 @@
       "竹書房"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801995413&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -176,7 +168,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 鈴原 りこ"
     ],
     "source_url": "https://www.i-one-net.com/item/1979",
-    "source_checked_at": "2026-09-13T14:16:04.908843+00:00",
+    "source_checked_at": "2026-09-13T14:24:18.725045+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -184,8 +176,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41456&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -197,7 +188,7 @@
       "・ いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 黒川 結"
     ],
     "source_url": "https://www.i-one-net.com/item/1980",
-    "source_checked_at": "2026-09-13T14:16:05.542310+00:00",
+    "source_checked_at": "2026-09-13T14:24:19.755618+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -205,8 +196,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41457&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -218,7 +208,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 藤川 あかり"
     ],
     "source_url": "https://www.i-one-net.com/item/1978",
-    "source_checked_at": "2026-09-13T14:16:04.042283+00:00",
+    "source_checked_at": "2026-09-13T14:24:17.796860+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -226,9 +216,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 0,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41455&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 0
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -240,7 +229,7 @@
       "5作目にして覚醒した最高峰のセクシーさで、自身の限界を突破する…！ 遅れてきた知的巨乳グラドル"
     ],
     "source_url": "https://www.i-one-net.com/item/1983",
-    "source_checked_at": "2026-09-13T14:16:07.999853+00:00",
+    "source_checked_at": "2026-09-13T14:24:22.191505+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -248,8 +237,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCYV-41460&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -261,7 +249,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 瀬戸 真凜"
     ],
     "source_url": "https://www.i-one-net.com/item/1977",
-    "source_checked_at": "2026-09-13T14:16:02.846019+00:00",
+    "source_checked_at": "2026-09-13T14:24:17.064541+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -269,8 +257,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41454&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -282,7 +269,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 初恋 さくら"
     ],
     "source_url": "https://www.i-one-net.com/item/1982",
-    "source_checked_at": "2026-09-13T14:16:07.111222+00:00",
+    "source_checked_at": "2026-09-13T14:24:21.456727+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -290,9 +277,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 45,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41459&hits=100&sort=match&output=json"
+    "affiliate_match_status": "review",
+    "affiliate_match_score": 45
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -304,7 +290,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 佐々木 明音"
     ],
     "source_url": "https://www.i-one-net.com/item/1981",
-    "source_checked_at": "2026-09-13T14:16:06.478632+00:00",
+    "source_checked_at": "2026-09-13T14:24:20.595953+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -312,8 +298,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41458&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -325,7 +310,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 平田 梨奈"
     ],
     "source_url": "https://www.i-one-net.com/item/1976",
-    "source_checked_at": "2026-09-13T14:16:02.194552+00:00",
+    "source_checked_at": "2026-09-13T14:24:16.142366+00:00",
     "tags": [
       "2026年",
       "2026年10月",
@@ -333,8 +318,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41453&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "竹書房",
@@ -344,7 +328,7 @@
     "jan": "9784801995277",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10172125.html",
-    "source_checked_at": "2026-09-13T14:16:37.545323+00:00",
+    "source_checked_at": "2026-09-13T14:24:50.627558+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -352,9 +336,8 @@
       "竹書房"
     ],
     "status": "upcoming",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801995277&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -366,7 +349,7 @@
       "脱いだらすごいオタク女子！究極ロリボイン"
     ],
     "source_url": "https://www.i-one-net.com/item/1975",
-    "source_checked_at": "2026-09-13T14:16:01.101980+00:00",
+    "source_checked_at": "2026-09-13T14:24:15.445552+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -374,8 +357,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCYV-41452&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -387,7 +369,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 最上 ゆに"
     ],
     "source_url": "https://www.i-one-net.com/item/1973",
-    "source_checked_at": "2026-09-13T14:15:59.822946+00:00",
+    "source_checked_at": "2026-09-13T14:24:13.835337+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -395,8 +377,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41450&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -408,7 +389,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 井手 美希"
     ],
     "source_url": "https://www.i-one-net.com/item/1969",
-    "source_checked_at": "2026-09-13T14:15:56.486606+00:00",
+    "source_checked_at": "2026-09-13T14:24:10.123516+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -416,9 +397,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 45,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41446&hits=100&sort=match&output=json"
+    "affiliate_match_status": "review",
+    "affiliate_match_score": 45
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -430,7 +410,7 @@
       "もうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 日下部 ほたる"
     ],
     "source_url": "https://www.i-one-net.com/item/1971",
-    "source_checked_at": "2026-09-13T14:15:58.047215+00:00",
+    "source_checked_at": "2026-09-13T14:24:11.911071+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -438,8 +418,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41448&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -451,7 +430,7 @@
       "・ いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 大泉 凜"
     ],
     "source_url": "https://www.i-one-net.com/item/1972",
-    "source_checked_at": "2026-09-13T14:15:58.839106+00:00",
+    "source_checked_at": "2026-09-13T14:24:12.752075+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -459,8 +438,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41449&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -472,7 +450,7 @@
       "・ いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 紺野 栞"
     ],
     "source_url": "https://www.i-one-net.com/item/1970",
-    "source_checked_at": "2026-09-13T14:15:57.256312+00:00",
+    "source_checked_at": "2026-09-13T14:24:10.980438+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -480,8 +458,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41447&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -493,7 +470,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 柳瀬 さき"
     ],
     "source_url": "https://www.i-one-net.com/item/1968",
-    "source_checked_at": "2026-09-13T14:15:55.691041+00:00",
+    "source_checked_at": "2026-09-13T14:24:09.282615+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -501,9 +478,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 0,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41445&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 0
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -515,7 +491,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 壇 あやこ"
     ],
     "source_url": "https://www.i-one-net.com/item/1974",
-    "source_checked_at": "2026-09-13T14:16:00.463520+00:00",
+    "source_checked_at": "2026-09-13T14:24:14.709381+00:00",
     "tags": [
       "2026年",
       "2026年9月",
@@ -523,8 +499,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41451&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -536,7 +511,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 花咲 音羽"
     ],
     "source_url": "https://www.i-one-net.com/item/1966",
-    "source_checked_at": "2026-09-13T14:16:16.417082+00:00",
+    "source_checked_at": "2026-09-13T14:24:33.910054+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -544,8 +519,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41443&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -557,7 +531,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 脊山 麻理子"
     ],
     "source_url": "https://www.i-one-net.com/item/1962",
-    "source_checked_at": "2026-09-13T14:16:13.699936+00:00",
+    "source_checked_at": "2026-09-13T14:24:30.736392+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -565,8 +539,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41439&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -578,7 +551,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 冴島 なな"
     ],
     "source_url": "https://www.i-one-net.com/item/1965",
-    "source_checked_at": "2026-09-13T14:16:15.777546+00:00",
+    "source_checked_at": "2026-09-13T14:24:33.236003+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -586,8 +559,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41442&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -599,7 +571,7 @@
       "ベールに包まれた謎のミューズ"
     ],
     "source_url": "https://www.i-one-net.com/item/1967",
-    "source_checked_at": "2026-09-13T14:16:17.027597+00:00",
+    "source_checked_at": "2026-09-13T14:24:34.976017+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -607,9 +579,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 45,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCYV-41444&hits=100&sort=match&output=json"
+    "affiliate_match_status": "review",
+    "affiliate_match_score": 45
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -621,7 +592,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 佐々木 萌香"
     ],
     "source_url": "https://www.i-one-net.com/item/1963",
-    "source_checked_at": "2026-09-13T14:16:14.337899+00:00",
+    "source_checked_at": "2026-09-13T14:24:31.470137+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -629,8 +600,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41440&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -642,7 +612,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 後藤 まつり"
     ],
     "source_url": "https://www.i-one-net.com/item/1964",
-    "source_checked_at": "2026-09-13T14:16:15.127862+00:00",
+    "source_checked_at": "2026-09-13T14:24:32.186579+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -650,8 +620,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41441&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -663,7 +632,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 伊織 いお"
     ],
     "source_url": "https://www.i-one-net.com/item/1961",
-    "source_checked_at": "2026-09-13T14:16:12.992308+00:00",
+    "source_checked_at": "2026-09-13T14:24:29.795383+00:00",
     "tags": [
       "2026年",
       "2026年8月",
@@ -671,8 +640,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41438&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "竹書房",
@@ -682,7 +650,7 @@
     "jan": "9784801994485",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10169420.html",
-    "source_checked_at": "2026-09-13T14:16:32.699231+00:00",
+    "source_checked_at": "2026-09-13T14:24:53.229766+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -690,9 +658,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801994485&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -704,7 +671,7 @@
       "至高のスレンダー美乳"
     ],
     "source_url": "https://www.i-one-net.com/item/1960",
-    "source_checked_at": "2026-09-13T14:16:22.554082+00:00",
+    "source_checked_at": "2026-09-13T14:24:39.794847+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -712,9 +679,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 45,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCYV-41437&hits=100&sort=match&output=json"
+    "affiliate_match_status": "review",
+    "affiliate_match_score": 45
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -726,7 +692,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 星宮 すみれ"
     ],
     "source_url": "https://www.i-one-net.com/item/1958",
-    "source_checked_at": "2026-09-13T14:16:20.953041+00:00",
+    "source_checked_at": "2026-09-13T14:24:38.201046+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -734,8 +700,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41435&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -747,7 +712,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 甘党 もも"
     ],
     "source_url": "https://www.i-one-net.com/item/1959",
-    "source_checked_at": "2026-09-13T14:16:21.766068+00:00",
+    "source_checked_at": "2026-09-13T14:24:38.936776+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -755,8 +720,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41436&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -768,7 +732,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 桜木 美緒"
     ],
     "source_url": "https://www.i-one-net.com/item/1957",
-    "source_checked_at": "2026-09-13T14:16:20.183278+00:00",
+    "source_checked_at": "2026-09-13T14:24:37.271921+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -776,8 +740,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41434&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -789,7 +752,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 入間 ゆい"
     ],
     "source_url": "https://www.i-one-net.com/item/1955",
-    "source_checked_at": "2026-09-13T14:16:18.087064+00:00",
+    "source_checked_at": "2026-09-13T14:24:35.907855+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -797,8 +760,7 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41432&hits=100&sort=match&output=json"
+    "affiliate_match_status": "not_found"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -810,7 +772,7 @@
       "いもうと系 ・ お姉さま系 ・ 癒し系 ・ ドキドキ系 ・ 清楚系 堀 みなみ"
     ],
     "source_url": "https://www.i-one-net.com/item/1956",
-    "source_checked_at": "2026-09-13T14:16:19.121760+00:00",
+    "source_checked_at": "2026-09-13T14:24:36.601360+00:00",
     "tags": [
       "2026年",
       "2026年7月",
@@ -818,9 +780,8 @@
       "ラインコミュニケーションズ / I-ONE"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 45,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=LCDV-41433&hits=100&sort=match&output=json"
+    "affiliate_match_status": "review",
+    "affiliate_match_score": 45
   },
   {
     "maker": "竹書房",
@@ -830,7 +791,7 @@
     "jan": "9784801994171",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10168168.html",
-    "source_checked_at": "2026-09-13T14:16:38.327738+00:00",
+    "source_checked_at": "2026-09-13T14:24:49.771421+00:00",
     "tags": [
       "2026年",
       "2026年6月",
@@ -838,9 +799,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801994171&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -850,7 +810,7 @@
     "jan": "9784801949454",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10159491.html",
-    "source_checked_at": "2026-09-13T14:16:35.064709+00:00",
+    "source_checked_at": "2026-09-13T14:24:46.317197+00:00",
     "tags": [
       "2026年",
       "2026年4月",
@@ -858,9 +818,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801949454&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -870,7 +829,7 @@
     "jan": "9784801948990",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10155783.html",
-    "source_checked_at": "2026-09-13T14:16:31.115488+00:00",
+    "source_checked_at": "2026-09-13T14:24:54.087135+00:00",
     "tags": [
       "2026年",
       "2026年3月",
@@ -878,9 +837,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801948990&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -890,7 +848,7 @@
     "jan": "9784801948044",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10152160.html",
-    "source_checked_at": "2026-09-13T14:16:29.359090+00:00",
+    "source_checked_at": "2026-09-13T14:24:42.950921+00:00",
     "tags": [
       "2025年",
       "2025年12月",
@@ -898,9 +856,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801948044&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -910,7 +867,7 @@
     "jan": "9784801948037",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10152162.html",
-    "source_checked_at": "2026-09-13T14:16:33.522609+00:00",
+    "source_checked_at": "2026-09-13T14:24:45.486418+00:00",
     "tags": [
       "2025年",
       "2025年12月",
@@ -918,9 +875,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801948037&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -930,7 +886,7 @@
     "jan": "9784801946903",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10143469.html",
-    "source_checked_at": "2026-09-13T14:16:39.850117+00:00",
+    "source_checked_at": "2026-09-13T14:24:43.794847+00:00",
     "tags": [
       "2025年",
       "2025年9月",
@@ -938,9 +894,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801946903&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -950,7 +905,7 @@
     "jan": "9784801945777",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10135481.html",
-    "source_checked_at": "2026-09-13T14:16:40.692047+00:00",
+    "source_checked_at": "2026-09-13T14:24:47.160921+00:00",
     "tags": [
       "2025年",
       "2025年7月",
@@ -958,9 +913,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801945777&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -970,7 +924,7 @@
     "jan": "9784801945425",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10134585.html",
-    "source_checked_at": "2026-09-13T14:16:36.749209+00:00",
+    "source_checked_at": "2026-09-13T14:24:44.656067+00:00",
     "tags": [
       "2025年",
       "2025年6月",
@@ -978,9 +932,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801945425&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -990,7 +943,7 @@
     "jan": "9784801944657",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10134612.html",
-    "source_checked_at": "2026-09-13T14:16:34.296632+00:00",
+    "source_checked_at": "2026-09-13T14:24:48.916344+00:00",
     "tags": [
       "2025年",
       "2025年4月",
@@ -998,9 +951,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801944657&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -1010,7 +962,7 @@
     "jan": "9784801943575",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10105637.html",
-    "source_checked_at": "2026-09-13T14:16:30.164299+00:00",
+    "source_checked_at": "2026-09-13T14:24:48.011652+00:00",
     "tags": [
       "2025年",
       "2025年1月",
@@ -1018,9 +970,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801943575&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -1030,7 +981,7 @@
     "jan": "9784801943247",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10105309.html",
-    "source_checked_at": "2026-09-13T14:16:31.883142+00:00",
+    "source_checked_at": "2026-09-13T14:24:52.360384+00:00",
     "tags": [
       "2024年",
       "2024年12月",
@@ -1038,9 +989,8 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 10,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801943247&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 10
   },
   {
     "maker": "竹書房",
@@ -1050,7 +1000,7 @@
     "jan": "9784801948600",
     "product_code": null,
     "source_url": "https://www.takeshobo.co.jp/book/b10154694.html",
-    "source_checked_at": "2026-09-13T14:16:39.093848+00:00",
+    "source_checked_at": "2026-09-13T14:24:51.527690+00:00",
     "tags": [
       "2000年",
       "2000年2月",
@@ -1058,8 +1008,7 @@
       "竹書房"
     ],
     "status": "released",
-    "affiliate_match_status": "error",
-    "affiliate_match_score": 0,
-    "affiliate_error": "400 Client Error: Bad Request for url: https://api.dmm.com/affiliate/v3/ItemList?api_id=By3S7ZwcDqMUEqWRDHGM&affiliate_id=nsfw1234-990&site=DMM.co.jp&service=mono&floor=dvd&keyword=9784801948600&hits=100&sort=match&output=json"
+    "affiliate_match_status": "unmatched",
+    "affiliate_match_score": 0
   }
 ]
