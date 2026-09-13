@@ -28,15 +28,20 @@ def score(p, i):
         v += 80 if pt == it else (45 if pt in it or it in pt else 0)
 
     code = norm_code(p.get("product_code"))
-    content_id = norm_code(i.get("content_id"))
-    if code and content_id:
-        if code == content_id:
-            v += 90
-        elif code in content_id or content_id in code:
-            v += 70
+    # DMM's product/品番 is product_id; content_id is a different identifier.
+    # Keep content_id as a fallback because some API records expose only it.
+    for candidate in (i.get("product_id"), i.get("content_id")):
+        candidate_code = norm_code(candidate)
+        if code and candidate_code:
+            if code == candidate_code:
+                v += 120
+                break
+            if code in candidate_code or candidate_code in code:
+                v += 80
+                break
 
-    if p.get("jan") and str(p["jan"]) == str(i.get("jan") or ""):
-        v += 100
+    if p.get("jan") and str(p["jan"]).strip() == str(i.get("jan") or "").strip():
+        v += 150
     if p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]):
         v += 10
     return v
@@ -51,8 +56,6 @@ def search(p):
             "ending in -990 through -999 (not the normal affiliate link ID)."
         )
 
-    # Prefer the most deterministic identifiers first. FANZA supports exact
-    # JAN search for mail-order products; product-code and title are fallbacks.
     keywords = []
     for value in (p.get("jan"), p.get("product_code"), p.get("title")):
         if value and value not in keywords:
