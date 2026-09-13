@@ -27,8 +27,6 @@ def performer_candidates(p):
         text = str(value or "").strip()
         if not text:
             continue
-        # Current I-ONE pages sometimes expose descriptive category text
-        # followed by the performer name. Keep the tail after the last category.
         tail = re.split(r"(?:系|グラドル|アイドル)\s*", text)[-1].strip(" ・")
         for candidate in (tail, text):
             if candidate and len(candidate) <= 40 and candidate not in out:
@@ -39,33 +37,42 @@ def performer_candidates(p):
     return out[:3]
 
 
-def score(p, i):
-    v = 0
+def match_facts(p, i):
     pt, it = norm(p.get("title")), norm(i.get("title"))
-    if pt and it:
-        v += 100 if pt == it else (55 if pt in it or it in pt else 0)
-
+    title_exact = bool(pt and it and pt == it)
+    title_partial = bool(pt and it and (pt in it or it in pt))
     performers = [norm(x) for x in performer_candidates(p) if norm(x)]
-    if performers and it and any(x in it for x in performers):
-        v += 35
+    performer_hit = bool(performers and it and any(x in it for x in performers))
 
     code = norm_code(p.get("product_code"))
-    for candidate in (i.get("maker_product"), i.get("product_id"), i.get("content_id")):
-        candidate_code = norm_code(candidate)
-        if code and candidate_code:
-            if code == candidate_code:
-                v += 140
-                break
-            if code in candidate_code or candidate_code in code:
-                v += 90
-                break
+    candidates = [norm_code(i.get("maker_product")), norm_code(i.get("product_id")), norm_code(i.get("content_id"))]
+    code_exact = bool(code and any(code == c for c in candidates if c))
+    code_partial = bool(code and any(code in c or c in code for c in candidates if c))
 
     jan = str(p.get("jan") or "").strip()
     dmm_jan = str(i.get("jancode") or i.get("jan") or "").strip()
-    if jan and dmm_jan and jan == dmm_jan:
-        v += 180
+    jan_exact = bool(jan and dmm_jan and jan == dmm_jan)
 
-    if p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]):
+    date_exact = bool(p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]))
+    return title_exact, title_partial, performer_hit, code_exact, code_partial, jan_exact, date_exact
+
+
+def score(p, i):
+    title_exact, title_partial, performer_hit, code_exact, code_partial, jan_exact, date_exact = match_facts(p, i)
+    v = 0
+    if title_exact:
+        v += 100
+    elif title_partial:
+        v += 55
+    if performer_hit:
+        v += 35
+    if code_exact:
+        v += 140
+    elif code_partial:
+        v += 20  # weak evidence only; never sufficient for an automatic match
+    if jan_exact:
+        v += 180
+    if date_exact:
         v += 15
     return v
 
@@ -87,9 +94,6 @@ def search(p):
         if value and value not in keywords:
             keywords.append(value)
 
-    # Do not stop at the first non-empty query. JAN/product-code searches can
-    # return broad or unrelated results; aggregate all candidates and let the
-    # scorer choose the best product using title, performer, code, JAN and date.
     all_items = {}
     last_error = None
     for keyword in keywords:
@@ -128,11 +132,7 @@ def enrich():
     for p in products:
         p.pop("affiliate_error", None)
         try:
-            ranked = sorted(
-                ((score(p, i), i) for i in search(p)),
-                key=lambda x: x[0],
-                reverse=True,
-            )
+            ranked = sorted(((score(p, i), i) for i in search(p)), key=lambda x: x[0], reverse=True)
             if not ranked:
                 p["affiliate_match_status"] = "not_found"
                 p.pop("affiliate_url", None)
@@ -141,11 +141,13 @@ def enrich():
                 continue
 
             s, i = ranked[0]
+            title_exact, title_partial, performer_hit, code_exact, code_partial, jan_exact, date_exact = match_facts(p, i)
             p["affiliate_match_score"] = s
-            # Exact title alone, exact maker code, JAN, or a strong combination
-            # is sufficient. Performer+title is also accepted for DMM titles
-            # that prepend the performer name.
-            if s >= 80 and i.get("affiliateURL"):
+
+            # Automatic match requires a strong product identity signal.
+            # Never auto-match from a partial product-code overlap alone.
+            strong_identity = jan_exact or code_exact or (title_exact and performer_hit) or (title_exact and date_exact)
+            if strong_identity and s >= 80 and i.get("affiliateURL"):
                 p["affiliate_url"] = i["affiliateURL"]
                 p["dmm_url"] = i.get("URL") or p["affiliate_url"]
                 p["affiliate_match_status"] = "matched"
