@@ -9,7 +9,8 @@ import requests
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
-SITE = os.getenv("DMM_SITE", "FANZA")
+# DMM Web API uses DMM.co.jp for FANZA/adult data; "FANZA" is not a valid API site value.
+SITE = "DMM.co.jp"
 DATA = Path(__file__).resolve().parents[1] / "data/products.json"
 
 
@@ -28,9 +29,7 @@ def score(p, i):
         v += 80 if pt == it else (45 if pt in it or it in pt else 0)
 
     code = norm_code(p.get("product_code"))
-    # DMM's product/品番 is product_id; content_id is a different identifier.
-    # Keep content_id as a fallback because some API records expose only it.
-    for candidate in (i.get("product_id"), i.get("content_id")):
+    for candidate in (i.get("product_id"), i.get("content_id"), i.get("maker_product")):
         candidate_code = norm_code(candidate)
         if code and candidate_code:
             if code == candidate_code:
@@ -40,7 +39,7 @@ def score(p, i):
                 v += 80
                 break
 
-    if p.get("jan") and str(p["jan"]).strip() == str(i.get("jan") or "").strip():
+    if p.get("jan") and str(p["jan"]).strip() == str(i.get("jan") or i.get("jancode") or "").strip():
         v += 150
     if p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]):
         v += 10
