@@ -27,8 +27,9 @@ def performer_candidates(p):
         text = str(value or "").strip()
         if not text:
             continue
-        tail = re.split(r"(?:系|グラドル|アイドル)\s*", text)[-1].strip(" ・")
+        tail = re.split(r"(?:系|グラドル|アイドル)\s*", text)[-1].strip(" ・|｜:：-")
         for candidate in (tail, text):
+            candidate = re.sub(r"^[ー―–—-]+\s*", "", candidate).strip()
             if candidate and len(candidate) <= 40 and candidate not in out:
                 out.append(candidate)
     title = str(p.get("title") or "").strip()
@@ -69,7 +70,7 @@ def score(p, i):
     if code_exact:
         v += 140
     elif code_partial:
-        v += 20  # weak evidence only; never sufficient for an automatic match
+        v += 20
     if jan_exact:
         v += 180
     if date_exact:
@@ -144,9 +145,15 @@ def enrich():
             title_exact, title_partial, performer_hit, code_exact, code_partial, jan_exact, date_exact = match_facts(p, i)
             p["affiliate_match_score"] = s
 
-            # Automatic match requires a strong product identity signal.
-            # Never auto-match from a partial product-code overlap alone.
-            strong_identity = jan_exact or code_exact or (title_exact and performer_hit) or (title_exact and date_exact)
+            # Accept a partial title only when the performer AND release date also match.
+            # Partial product-code overlap alone remains insufficient for auto-matching.
+            strong_identity = (
+                jan_exact
+                or code_exact
+                or (title_exact and performer_hit)
+                or (title_exact and date_exact)
+                or (title_partial and performer_hit and date_exact)
+            )
             if strong_identity and s >= 80 and i.get("affiliateURL"):
                 p["affiliate_url"] = i["affiliateURL"]
                 p["dmm_url"] = i.get("URL") or p["affiliate_url"]
