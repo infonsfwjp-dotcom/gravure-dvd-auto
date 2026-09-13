@@ -9,8 +9,7 @@ import requests
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
-# DMM Web API uses DMM.co.jp for FANZA/adult data; "FANZA" is not a valid API site value.
-SITE = "DMM.co.jp"
+SITE = "FANZA"
 DATA = Path(__file__).resolve().parents[1] / "data/products.json"
 
 
@@ -29,7 +28,7 @@ def score(p, i):
         v += 80 if pt == it else (45 if pt in it or it in pt else 0)
 
     code = norm_code(p.get("product_code"))
-    for candidate in (i.get("product_id"), i.get("content_id"), i.get("maker_product")):
+    for candidate in (i.get("maker_product"), i.get("product_id"), i.get("content_id")):
         candidate_code = norm_code(candidate)
         if code and candidate_code:
             if code == candidate_code:
@@ -39,8 +38,11 @@ def score(p, i):
                 v += 80
                 break
 
-    if p.get("jan") and str(p["jan"]).strip() == str(i.get("jan") or i.get("jancode") or "").strip():
+    jan = str(p.get("jan") or "").strip()
+    dmm_jan = str(i.get("jancode") or i.get("jan") or "").strip()
+    if jan and dmm_jan and jan == dmm_jan:
         v += 150
+
     if p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]):
         v += 10
     return v
@@ -60,6 +62,7 @@ def search(p):
         if value and value not in keywords:
             keywords.append(value)
 
+    last_error = None
     for keyword in keywords:
         params = {
             "api_id": API_ID,
@@ -73,11 +76,15 @@ def search(p):
             "output": "json",
         }
         r = requests.get(API_URL, params=params, timeout=30)
-        r.raise_for_status()
+        if r.status_code >= 400:
+            last_error = f"DMM API HTTP {r.status_code}: {r.text[:300]}"
+            continue
         items = r.json().get("result", {}).get("items", []) or []
         if items:
             return items
         time.sleep(0.15)
+    if last_error:
+        raise RuntimeError(last_error)
     return []
 
 
