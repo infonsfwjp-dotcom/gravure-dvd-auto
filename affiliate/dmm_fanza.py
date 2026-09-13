@@ -9,9 +9,8 @@ import requests
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
-# DMM Web API accepts DMM.com / DMM.co.jp here; FANZA is the affiliate destination,
-# not the API `site` value.
-SITE = os.getenv("DMM_SITE", "DMM.com")
+# FANZA DVDs are queried from the adult site/floor of the DMM Web API.
+SITE = os.getenv("DMM_SITE", "FANZA")
 DATA = Path(__file__).resolve().parents[1] / "data/products.json"
 
 
@@ -38,6 +37,12 @@ def score(p, i):
 def search(p):
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
+    # DMM Web Service API affiliate IDs are API-enabled only for suffix 990-999.
+    if not re.search(r"-(?:99[0-9])$", AFFILIATE_ID):
+        raise RuntimeError(
+            "DMM_AFFILIATE_ID is not API-enabled. Use the DMM Web Service/API affiliate ID "
+            "ending in -990 through -999 (not the normal affiliate link ID)."
+        )
     for keyword in (p.get("jan"), p.get("product_code"), p.get("title")):
         if not keyword:
             continue
@@ -62,6 +67,7 @@ def search(p):
 
 def enrich():
     products = json.loads(DATA.read_text(encoding="utf-8")) if DATA.exists() else []
+    matched = review = not_found = errors = 0
     for p in products:
         p.pop("affiliate_error", None)
         try:
@@ -70,6 +76,7 @@ def enrich():
                 p["affiliate_match_status"] = "not_found"
                 p.pop("affiliate_url", None)
                 p.pop("dmm_url", None)
+                not_found += 1
                 continue
             s, i = ranked[0]
             p["affiliate_match_score"] = s
@@ -77,18 +84,23 @@ def enrich():
                 p["affiliate_url"] = i["affiliateURL"]
                 p["dmm_url"] = i.get("URL") or p["affiliate_url"]
                 p["affiliate_match_status"] = "matched"
+                matched += 1
             elif s >= 45:
                 p["affiliate_match_status"] = "review"
                 p.pop("affiliate_url", None)
                 p.pop("dmm_url", None)
+                review += 1
             else:
                 p["affiliate_match_status"] = "unmatched"
                 p.pop("affiliate_url", None)
                 p.pop("dmm_url", None)
+                review += 1
         except Exception as e:
             p["affiliate_match_status"] = "error"
             p["affiliate_error"] = str(e)
+            errors += 1
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"affiliate matches={matched} review_or_unmatched={review} not_found={not_found} errors={errors}")
 
 
 if __name__ == "__main__":
