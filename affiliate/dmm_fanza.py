@@ -9,7 +9,6 @@ import requests
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
-# FANZA DVDs are queried from the adult site/floor of the DMM Web API.
 SITE = os.getenv("DMM_SITE", "FANZA")
 DATA = Path(__file__).resolve().parents[1] / "data/products.json"
 
@@ -18,15 +17,24 @@ def norm(s):
     return re.sub(r"[\s　「」『』（）()\-ー・:：/／.。,，]+", "", str(s or "")).lower()
 
 
+def norm_code(s):
+    return re.sub(r"[^a-z0-9]", "", str(s or "").lower())
+
+
 def score(p, i):
     v = 0
     pt, it = norm(p.get("title")), norm(i.get("title"))
     if pt and it:
         v += 80 if pt == it else (45 if pt in it or it in pt else 0)
-    code = str(p.get("product_code") or "").lower()
-    content_id = str(i.get("content_id") or "").lower()
-    if code and code in content_id:
-        v += 35
+
+    code = norm_code(p.get("product_code"))
+    content_id = norm_code(i.get("content_id"))
+    if code and content_id:
+        if code == content_id:
+            v += 90
+        elif code in content_id or content_id in code:
+            v += 70
+
     if p.get("jan") and str(p["jan"]) == str(i.get("jan") or ""):
         v += 100
     if p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]):
@@ -37,15 +45,20 @@ def score(p, i):
 def search(p):
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
-    # DMM Web Service API affiliate IDs are API-enabled only for suffix 990-999.
     if not re.search(r"-(?:99[0-9])$", AFFILIATE_ID):
         raise RuntimeError(
             "DMM_AFFILIATE_ID is not API-enabled. Use the DMM Web Service/API affiliate ID "
             "ending in -990 through -999 (not the normal affiliate link ID)."
         )
-    for keyword in (p.get("jan"), p.get("product_code"), p.get("title")):
-        if not keyword:
-            continue
+
+    # Prefer the most deterministic identifiers first. FANZA supports exact
+    # JAN search for mail-order products; product-code and title are fallbacks.
+    keywords = []
+    for value in (p.get("jan"), p.get("product_code"), p.get("title")):
+        if value and value not in keywords:
+            keywords.append(value)
+
+    for keyword in keywords:
         params = {
             "api_id": API_ID,
             "affiliate_id": AFFILIATE_ID,
@@ -53,7 +66,8 @@ def search(p):
             "service": "mono",
             "floor": "dvd",
             "keyword": keyword,
-            "hits": 20,
+            "hits": 100,
+            "sort": "match",
             "output": "json",
         }
         r = requests.get(API_URL, params=params, timeout=30)
@@ -61,7 +75,7 @@ def search(p):
         items = r.json().get("result", {}).get("items", []) or []
         if items:
             return items
-        time.sleep(0.2)
+        time.sleep(0.15)
     return []
 
 
@@ -71,13 +85,18 @@ def enrich():
     for p in products:
         p.pop("affiliate_error", None)
         try:
-            ranked = sorted(((score(p, i), i) for i in search(p)), key=lambda x: x[0], reverse=True)
+            ranked = sorted(
+                ((score(p, i), i) for i in search(p)),
+                key=lambda x: x[0],
+                reverse=True,
+            )
             if not ranked:
                 p["affiliate_match_status"] = "not_found"
                 p.pop("affiliate_url", None)
                 p.pop("dmm_url", None)
                 not_found += 1
                 continue
+
             s, i = ranked[0]
             p["affiliate_match_score"] = s
             if s >= 80 and i.get("affiliateURL"):
@@ -99,6 +118,7 @@ def enrich():
             p["affiliate_match_status"] = "error"
             p["affiliate_error"] = str(e)
             errors += 1
+
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"affiliate matches={matched} review_or_unmatched={review} not_found={not_found} errors={errors}")
 
