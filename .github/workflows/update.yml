@@ -22,7 +22,7 @@ jobs:
         env:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
-          DMM_SITE: DMM.com
+          DMM_SITE: FANZA
         run: python -m affiliate.dmm_fanza
       - name: Generate static site
         env:
