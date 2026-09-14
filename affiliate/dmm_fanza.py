@@ -146,13 +146,31 @@ def search(p):
     return []
 
 
+def diagnostic_line(p, ranked):
+    if not ranked:
+        return f"DIAG title={p.get('title')} code={p.get('product_code')} jan={p.get('jan')} candidates=0"
+    s, i = ranked[0]
+    facts = match_facts(p, i)
+    return (
+        f"DIAG title={p.get('title')} code={p.get('product_code')} jan={p.get('jan')} "
+        f"score={s} facts={facts} affiliate={'yes' if i.get('affiliateURL') else 'no'} "
+        f"dmm_code={i.get('maker_product') or ''} product_id={i.get('product_id') or ''} "
+        f"jancode={i.get('jancode') or i.get('jan') or ''} date={str(i.get('date') or '')[:10]} "
+        f"dmm_title={str(i.get('title') or '')[:100]}"
+    )
+
+
 def enrich():
     products = json.loads(DATA.read_text(encoding="utf-8")) if DATA.exists() else []
     matched = review = not_found = errors = 0
+    diagnostics = 0
     for p in products:
         p.pop("affiliate_error", None)
         try:
             ranked = sorted(((score(p, i), i) for i in search(p)), key=lambda x: x[0], reverse=True)
+            if diagnostics < 10:
+                print(diagnostic_line(p, ranked))
+                diagnostics += 1
             if not ranked:
                 p["affiliate_match_status"] = "not_found"
                 p.pop("affiliate_url", None)
