@@ -16,19 +16,12 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
       - run: pip install -r requirements.txt
-      - name: Scrape 3 manufacturers
-        run: python -m scraper.run_all
-      - name: Match FANZA/DMM
+      - name: Discover new releases from FANZA by manufacturer
         env:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
           DMM_SITE: FANZA
-        run: python -m affiliate.dmm_fanza
-      - name: Resolve manufacturer DMM/FANZA source links
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
-        run: python -m affiliate.dmm_source_cid
+        run: python -m affiliate.dmm_discovery
       - name: Generate static site
         env:
           SITE_URL: ${{ vars.SITE_URL }}
