@@ -9,7 +9,10 @@ from pathlib import Path
 
 import requests
 
-API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
+API_BASE = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList").rsplit("/", 1)[0]
+ITEM_API_URL = f"{API_BASE}/ItemList"
+FLOOR_API_URL = f"{API_BASE}/FloorList"
+MAKER_API_URL = f"{API_BASE}/MakerSearch"
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
 SITE = "FANZA"
@@ -25,7 +28,7 @@ MAKERS = [
     {
         "id": "i-one",
         "name": "ラインコミュニケーションズ / I-ONE",
-        "keywords": ["ラインコミュニケーションズ", "I-ONE"],
+        "keywords": ["ラインコミュニケーションズ", "I-ONE", "I ONE"],
         "strict_idol": False,
     },
     {
@@ -42,17 +45,6 @@ EXCLUDE_TITLE = ("写真集", "コミック", "漫画", "雑誌")
 
 def norm(s: str) -> str:
     return re.sub(r"[\s　「」『』（）()\-ー・:：/／.。,，!?！？]+", "", str(s or "")).lower()
-
-
-def flat_strings(value):
-    if isinstance(value, str):
-        yield value
-    elif isinstance(value, dict):
-        for v in value.values():
-            yield from flat_strings(v)
-    elif isinstance(value, list):
-        for v in value:
-            yield from flat_strings(v)
 
 
 def iteminfo_names(item, key):
@@ -85,8 +77,6 @@ def genre_names(item):
 def maker_matches(item, maker):
     hay = " ".join(maker_names(item)).lower()
     if not hay:
-        # DMM keyword search is already constrained by the manufacturer keyword.
-        # For non-竹書房 makers we allow the API result when maker metadata is absent.
         return not maker["strict_idol"]
     return any(norm(k) in norm(hay) or norm(hay) in norm(k) for k in maker["keywords"])
 
@@ -96,15 +86,18 @@ def is_takeshobo_idol(item):
     if any(x in title for x in EXCLUDE_TITLE):
         return False
     genres = " ".join(genre_names(item))
-    #竹書房 is intentionally strict: DVD + idol/gravure/image genre is required.
     return any(x in genres for x in INCLUDE_GENRE)
 
 
-def request_items(params):
-    r = requests.get(API_URL, params=params, timeout=30)
+def request_json(url, params):
+    r = requests.get(url, params=params, timeout=30)
     if r.status_code >= 400:
         raise RuntimeError(f"DMM API HTTP {r.status_code}: {r.text[:300]}")
-    return r.json().get("result", {}).get("items", []) or []
+    return r.json()
+
+
+def request_items(params):
+    return request_json(ITEM_API_URL, params).get("result", {}).get("items", []) or []
 
 
 def talent_names(item):
@@ -117,6 +110,52 @@ def talent_names(item):
     return out
 
 
+def find_dvd_floor_id():
+    data = request_json(FLOOR_API_URL, {
+        "api_id": API_ID,
+        "affiliate_id": AFFILIATE_ID,
+        "site": SITE,
+        "output": "json",
+    })
+    def walk(value):
+        if isinstance(value, dict):
+            if value.get("code") == "dvd":
+                return value.get("id") or value.get("floor_id")
+            for v in value.values():
+                found = walk(v)
+                if found:
+                    return found
+        elif isinstance(value, list):
+            for v in value:
+                found = walk(v)
+                if found:
+                    return found
+        return None
+    return walk(data)
+
+
+def find_maker_ids(floor_id, maker):
+    found = {}
+    for keyword in maker["keywords"]:
+        data = request_json(MAKER_API_URL, {
+            "api_id": API_ID,
+            "affiliate_id": AFFILIATE_ID,
+            "site": SITE,
+            "floor_id": floor_id,
+            "keyword": keyword,
+            "hits": 100,
+            "output": "json",
+        })
+        makers = data.get("result", {}).get("makers", []) or []
+        for m in makers:
+            mid = str(m.get("id") or m.get("maker_id") or "")
+            name = str(m.get("name") or "")
+            if mid and name and any(norm(k) in norm(name) or norm(name) in norm(k) for k in maker["keywords"]):
+                found[mid] = name
+        time.sleep(0.2)
+    return found
+
+
 def discover():
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
@@ -126,26 +165,39 @@ def discover():
     end = today + timedelta(days=180)
     all_items = {}
 
+    dvd_floor_id = find_dvd_floor_id()
+    maker_ids = {}
+    if dvd_floor_id:
+        for maker in MAKERS:
+            maker_ids[maker["id"]] = find_maker_ids(dvd_floor_id, maker)
+            print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
+
     for maker in MAKERS:
-        # Split the period into monthly-ish windows so a busy manufacturer cannot
-        # push upcoming releases out of the 100-item API page.
+        ids = list(maker_ids.get(maker["id"], {}).keys())
         cursor = start
         while cursor <= end:
             window_end = min(cursor + timedelta(days=30), end)
-            for keyword in maker["keywords"]:
+            # Prefer the official maker facet. Fall back to keyword search only
+            # when MakerSearch cannot resolve an ID for a manufacturer.
+            queries = [(None, mid) for mid in ids] if ids else [(keyword, None) for keyword in maker["keywords"]]
+            for keyword, maker_id in queries:
                 params = {
                     "api_id": API_ID,
                     "affiliate_id": AFFILIATE_ID,
                     "site": SITE,
                     "service": "mono",
                     "floor": "dvd",
-                    "keyword": keyword,
                     "gte_date": f"{cursor.isoformat()}T00:00:00",
                     "lte_date": f"{window_end.isoformat()}T23:59:59",
                     "sort": "date",
                     "hits": 100,
                     "output": "json",
                 }
+                if maker_id:
+                    params["article"] = "maker"
+                    params["article_id"] = maker_id
+                else:
+                    params["keyword"] = keyword
                 for item in request_items(params):
                     if not maker_matches(item, maker):
                         continue
