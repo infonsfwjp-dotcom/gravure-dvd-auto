@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs
 from scraper.base import clean,parse_japanese_date,now,add_common_tags
 from scraper.http import soup
 
@@ -20,6 +20,31 @@ def clean_performer(value):
         text=re.sub(rf"(?:^|[ ・|｜]+){re.escape(cat)}(?=$|[ ・|｜]+)", " ", text)
     text=re.sub(r"\s+", " ", text).strip(" ・|｜:：")
     return text
+
+
+def find_dmm_link(s):
+    for a in s.select("a[href]"):
+        href=str(a.get("href") or "").strip()
+        if not href:
+            continue
+        full=urljoin(BASE,href)
+        low=full.lower()
+        if "dmm.com" not in low and "fanza" not in low:
+            continue
+        if not any(x in low for x in ("/mono/", "cid=", "product_id", "content_id")):
+            continue
+        cid=""
+        m=re.search(r"(?:cid=|/cid=)([a-z0-9_\-]+)",full,re.I)
+        if m:
+            cid=m.group(1)
+        if not cid:
+            try:
+                q=parse_qs(urlparse(full).query)
+                cid=(q.get("cid") or [""])[0]
+            except Exception:
+                pass
+        return full,cid
+    return None,None
 
 
 def parse(url, s):
@@ -72,10 +97,16 @@ def parse(url, s):
         cleaned=clean_performer(talent[0])
         talent=[cleaned] if cleaned else []
 
-    return add_common_tags({
+    dmm_url,dmm_cid=find_dmm_link(s)
+    item={
         "maker":MAKER,"maker_id":ID,"title":title,"release_date":date,
         "product_code":code,"talent":talent,"source_url":url,"source_checked_at":now(),
-    })
+    }
+    if dmm_url:
+        item["source_dmm_url"]=dmm_url
+    if dmm_cid:
+        item["source_dmm_cid"]=dmm_cid
+    return add_common_tags(item)
 
 
 def scrape():
