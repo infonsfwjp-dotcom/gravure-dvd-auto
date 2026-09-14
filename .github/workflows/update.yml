@@ -24,6 +24,11 @@ jobs:
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
           DMM_SITE: FANZA
         run: python -m affiliate.dmm_fanza
+      - name: Resolve manufacturer DMM/FANZA source links
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
+        run: python -m affiliate.dmm_source_cid
       - name: Generate static site
         env:
           SITE_URL: ${{ vars.SITE_URL }}
