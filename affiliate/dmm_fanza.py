@@ -50,8 +50,8 @@ def match_facts(p, i):
     code_exact = bool(code and any(code == c for c in candidates if c))
     code_partial = bool(code and any(code in c or c in code for c in candidates if c))
 
-    jan = str(p.get("jan") or "").strip()
-    dmm_jan = str(i.get("jancode") or i.get("jan") or "").strip()
+    jan = re.sub(r"\D", "", str(p.get("jan") or ""))
+    dmm_jan = re.sub(r"\D", "", str(i.get("jancode") or i.get("jan") or ""))
     jan_exact = bool(jan and dmm_jan and jan == dmm_jan)
 
     date_exact = bool(p.get("release_date") and str(i.get("date") or "")[:10] == str(p["release_date"]))
@@ -78,6 +78,33 @@ def score(p, i):
     return v
 
 
+def search_keywords(p):
+    keywords = []
+
+    def add(value):
+        value = str(value or "").strip()
+        if value and value not in keywords:
+            keywords.append(value)
+
+    jan_raw = str(p.get("jan") or "").strip()
+    jan_digits = re.sub(r"\D", "", jan_raw)
+    code_raw = str(p.get("product_code") or "").strip()
+    code_normalized = norm_code(code_raw)
+    title_raw = str(p.get("title") or "").strip()
+
+    add(jan_raw)
+    add(jan_digits)
+    add(code_raw)
+    add(code_normalized)
+    add(title_raw)
+    add(norm(title_raw))
+    for performer in performer_candidates(p):
+        add(performer)
+        add(norm(performer))
+
+    return keywords
+
+
 def search(p):
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
@@ -87,17 +114,9 @@ def search(p):
             "ending in -990 through -999 (not the normal affiliate link ID)."
         )
 
-    keywords = []
-    values = [p.get("jan"), p.get("product_code"), p.get("title")]
-    values.extend(performer_candidates(p))
-    for value in values:
-        value = str(value or "").strip()
-        if value and value not in keywords:
-            keywords.append(value)
-
     all_items = {}
     last_error = None
-    for keyword in keywords:
+    for keyword in search_keywords(p):
         params = {
             "api_id": API_ID,
             "affiliate_id": AFFILIATE_ID,
@@ -145,8 +164,6 @@ def enrich():
             title_exact, title_partial, performer_hit, code_exact, code_partial, jan_exact, date_exact = match_facts(p, i)
             p["affiliate_match_score"] = s
 
-            # Accept a partial title only when the performer AND release date also match.
-            # Partial product-code overlap alone remains insufficient for auto-matching.
             strong_identity = (
                 jan_exact
                 or code_exact
