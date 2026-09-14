@@ -27,6 +27,7 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
         run: python site/generate.py
       - name: Post newly discovered releases to X
+        continue-on-error: true
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
