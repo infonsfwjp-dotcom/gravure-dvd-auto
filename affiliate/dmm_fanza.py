@@ -105,6 +105,16 @@ def search_keywords(p):
     return keywords
 
 
+def request_items(params):
+    r = requests.get(API_URL, params=params, timeout=30)
+    if r.status_code >= 400:
+        return [], f"DMM API HTTP {r.status_code}: {r.text[:300]}"
+    try:
+        return r.json().get("result", {}).get("items", []) or [], None
+    except Exception as e:
+        return [], f"DMM API invalid JSON: {e}"
+
+
 def search(p):
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
@@ -116,27 +126,52 @@ def search(p):
 
     all_items = {}
     last_error = None
+
+    base = {
+        "api_id": API_ID,
+        "affiliate_id": AFFILIATE_ID,
+        "site": SITE,
+        "service": "mono",
+        "floor": "dvd",
+        "hits": 100,
+        "output": "json",
+    }
+
+    # 1) Normal exact/partial keyword searches.
     for keyword in search_keywords(p):
-        params = {
-            "api_id": API_ID,
-            "affiliate_id": AFFILIATE_ID,
-            "site": SITE,
-            "service": "mono",
-            "floor": "dvd",
-            "keyword": keyword,
-            "hits": 100,
-            "sort": "match",
-            "output": "json",
-        }
-        r = requests.get(API_URL, params=params, timeout=30)
-        if r.status_code >= 400:
-            last_error = f"DMM API HTTP {r.status_code}: {r.text[:300]}"
+        params = dict(base)
+        params.update({"keyword": keyword, "sort": "match"})
+        items, error = request_items(params)
+        if error:
+            last_error = error
             continue
-        items = r.json().get("result", {}).get("items", []) or []
         for item in items:
             key = item.get("product_id") or item.get("content_id") or item.get("URL")
             if key:
                 all_items[key] = item
+        time.sleep(0.2)
+
+    # 2) Critical fallback: search the entire FANZA DVD catalog for the exact
+    #    release date. Upcoming manufacturer pages can precede FANZA indexing,
+    #    and product-code keyword searches may return unrelated older products.
+    release_date = str(p.get("release_date") or "")[:10]
+    if release_date and re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date):
+        date_start = f"{release_date}T00:00:00"
+        date_end = f"{release_date}T23:59:59"
+        params = dict(base)
+        params.update({
+            "gte_date": date_start,
+            "lte_date": date_end,
+            "sort": "date",
+        })
+        items, error = request_items(params)
+        if error:
+            last_error = error
+        else:
+            for item in items:
+                key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                if key:
+                    all_items[key] = item
         time.sleep(0.2)
 
     if all_items:
