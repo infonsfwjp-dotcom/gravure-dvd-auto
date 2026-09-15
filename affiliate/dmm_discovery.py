@@ -175,8 +175,17 @@ def discover():
         cursor = start
         while cursor <= end:
             window_end = min(cursor + timedelta(days=30), end)
-            queries = [(None, mid) for mid in ids] if ids else [(keyword, None) for keyword in maker["keywords"]]
+            # Always run both maker-ID and exact manufacturer-name searches.
+            # Some FANZA/DMM catalog records are not returned by MakerSearch-backed
+            # article filtering even when the maker ID exists.
+            queries = [(None, mid) for mid in ids]
+            queries += [(keyword, None) for keyword in maker["keywords"]]
+            seen_query_keys = set()
             for keyword, maker_id in queries:
+                query_key = (keyword, maker_id)
+                if query_key in seen_query_keys:
+                    continue
+                seen_query_keys.add(query_key)
                 params = {
                     "api_id": API_ID,
                     "affiliate_id": AFFILIATE_ID,
