@@ -19,24 +19,9 @@ SITE = "FANZA"
 OUT = Path(__file__).resolve().parents[1] / "data/products.json"
 
 MAKERS = [
-    {
-        "id": "spice_visual",
-        "name": "スパイスビジュアル",
-        "keywords": ["スパイスビジュアル", "Spice Visual"],
-        "strict_idol": False,
-    },
-    {
-        "id": "i-one",
-        "name": "ラインコミュニケーションズ / I-ONE",
-        "keywords": ["ラインコミュニケーションズ", "I-ONE", "I ONE"],
-        "strict_idol": False,
-    },
-    {
-        "id": "takeshobo",
-        "name": "竹書房",
-        "keywords": ["竹書房"],
-        "strict_idol": True,
-    },
+    {"id": "spice_visual", "name": "スパイスビジュアル", "keywords": ["スパイスビジュアル", "Spice Visual"], "strict_idol": False},
+    {"id": "i-one", "name": "ラインコミュニケーションズ / I-ONE", "keywords": ["ラインコミュニケーションズ", "I-ONE", "I ONE"], "strict_idol": False},
+    {"id": "takeshobo", "name": "竹書房", "keywords": ["竹書房"], "strict_idol": True},
 ]
 
 INCLUDE_GENRE = ("アイドル", "グラビア", "イメージ")
@@ -110,49 +95,70 @@ def talent_names(item):
     return out
 
 
-def find_dvd_floor_id():
-    data = request_json(FLOOR_API_URL, {
-        "api_id": API_ID,
-        "affiliate_id": AFFILIATE_ID,
-        "site": SITE,
-        "output": "json",
-    })
-    def walk(value):
+def find_dvd_floor_ids():
+    data = request_json(FLOOR_API_URL, {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "output": "json"})
+    found = []
+
+    def walk(value, parent_text=""):
         if isinstance(value, dict):
-            if value.get("code") == "dvd":
-                return value.get("id") or value.get("floor_id")
+            code = str(value.get("code") or value.get("floor_code") or "").lower()
+            name = str(value.get("name") or value.get("floor_name") or "")
+            fid = str(value.get("id") or value.get("floor_id") or "")
+            context = f"{parent_text} {code} {name}".lower()
+            if fid and (code in {"dvd", "mono-dvd", "monodvd"} or ("dvd" in context and ("mono" in context or "通販" in context))):
+                if fid not in found:
+                    found.append(fid)
             for v in value.values():
-                found = walk(v)
-                if found:
-                    return found
+                walk(v, context)
         elif isinstance(value, list):
             for v in value:
-                found = walk(v)
-                if found:
-                    return found
-        return None
-    return walk(data)
+                walk(v, parent_text)
+
+    walk(data)
+    # Fallback candidates used by historical DMM API clients if the FloorList
+    # response cannot be recognized due to response-shape changes.
+    for fid in ("25", "26", "27", "28", "29", "30"):
+        if fid not in found:
+            found.append(fid)
+    print(f"  dvd floor ids: {found}")
+    return found
 
 
-def find_maker_ids(floor_id, maker):
+def find_maker_ids(floor_ids, maker):
+    """Resolve official maker IDs using MakerSearch pagination.
+
+    MakerSearch uses floor_id/hits/offset/initial; the ItemList-style keyword
+    parameter is not a reliable way to resolve manufacturers.
+    """
     found = {}
-    for keyword in maker["keywords"]:
-        data = request_json(MAKER_API_URL, {
-            "api_id": API_ID,
-            "affiliate_id": AFFILIATE_ID,
-            "site": SITE,
-            "floor_id": floor_id,
-            "keyword": keyword,
-            "hits": 100,
-            "output": "json",
-        })
-        makers = data.get("result", {}).get("makers", []) or []
-        for m in makers:
-            mid = str(m.get("id") or m.get("maker_id") or "")
-            name = str(m.get("name") or "")
-            if mid and name and any(norm(k) in norm(name) or norm(name) in norm(k) for k in maker["keywords"]):
-                found[mid] = name
-        time.sleep(0.2)
+    for floor_id in floor_ids:
+        offset = 1
+        while offset <= 5000:
+            data = request_json(MAKER_API_URL, {
+                "api_id": API_ID,
+                "affiliate_id": AFFILIATE_ID,
+                "site": SITE,
+                "floor_id": floor_id,
+                "hits": 100,
+                "offset": offset,
+                "output": "json",
+            })
+            result = data.get("result", {}) or {}
+            makers = result.get("makers") or result.get("maker") or []
+            if isinstance(makers, dict):
+                makers = makers.get("maker") or []
+            if not makers:
+                break
+            for m in makers:
+                mid = str(m.get("id") or m.get("maker_id") or "")
+                name = str(m.get("name") or "")
+                if mid and name and any(norm(k) in norm(name) or norm(name) in norm(k) for k in maker["keywords"]):
+                    found[mid] = name
+            if len(makers) < 100:
+                break
+            offset += 100
+            time.sleep(0.1)
+        time.sleep(0.1)
     return found
 
 
@@ -165,20 +171,17 @@ def discover():
     end = today + timedelta(days=180)
     all_items = {}
 
-    dvd_floor_id = find_dvd_floor_id()
+    floor_ids = find_dvd_floor_ids()
     maker_ids = {}
-    if dvd_floor_id:
-        for maker in MAKERS:
-            maker_ids[maker["id"]] = find_maker_ids(dvd_floor_id, maker)
-            print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
+    for maker in MAKERS:
+        maker_ids[maker["id"]] = find_maker_ids(floor_ids, maker)
+        print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
 
     for maker in MAKERS:
         ids = list(maker_ids.get(maker["id"], {}).keys())
         cursor = start
         while cursor <= end:
             window_end = min(cursor + timedelta(days=30), end)
-            # Prefer the official maker facet. Fall back to keyword search only
-            # when MakerSearch cannot resolve an ID for a manufacturer.
             queries = [(None, mid) for mid in ids] if ids else [(keyword, None) for keyword in maker["keywords"]]
             for keyword, maker_id in queries:
                 params = {
