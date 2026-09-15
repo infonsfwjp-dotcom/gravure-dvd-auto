@@ -23,7 +23,6 @@ MAKERS = [
     {"id": "i-one", "name": "ラインコミュニケーションズ / I-ONE", "keywords": ["ラインコミュニケーションズ", "I-ONE", "I ONE"], "strict_idol": False},
     {"id": "takeshobo", "name": "竹書房", "keywords": ["竹書房"], "strict_idol": True},
 ]
-
 INCLUDE_GENRE = ("アイドル", "グラビア", "イメージ")
 EXCLUDE_TITLE = ("写真集", "コミック", "漫画", "雑誌")
 
@@ -33,9 +32,9 @@ def norm(s: str) -> str:
 
 
 def iteminfo_names(item, key):
-    info = item.get("iteminfo") or {}
-    value = info.get(key)
-    return [str(x.get("name") or x.get("value") or x.get("id") or "") for x in (value if isinstance(value, list) else [value]) if x]
+    value = (item.get("iteminfo") or {}).get(key)
+    values = value if isinstance(value, list) else [value]
+    return [str(x.get("name") or x.get("value") or x.get("id") or "") for x in values if x]
 
 
 def maker_names(item):
@@ -70,8 +69,7 @@ def is_takeshobo_idol(item):
     title = str(item.get("title") or "")
     if any(x in title for x in EXCLUDE_TITLE):
         return False
-    genres = " ".join(genre_names(item))
-    return any(x in genres for x in INCLUDE_GENRE)
+    return any(x in " ".join(genre_names(item)) for x in INCLUDE_GENRE)
 
 
 def request_json(url, params):
@@ -115,34 +113,30 @@ def find_dvd_floor_ids():
                 walk(v, parent_text)
 
     walk(data)
-    # Fallback candidates used by historical DMM API clients if the FloorList
-    # response cannot be recognized due to response-shape changes.
-    for fid in ("25", "26", "27", "28", "29", "30"):
-        if fid not in found:
-            found.append(fid)
     print(f"  dvd floor ids: {found}")
     return found
 
 
 def find_maker_ids(floor_ids, maker):
-    """Resolve official maker IDs using MakerSearch pagination.
-
-    MakerSearch uses floor_id/hits/offset/initial; the ItemList-style keyword
-    parameter is not a reliable way to resolve manufacturers.
-    """
     found = {}
     for floor_id in floor_ids:
         offset = 1
         while offset <= 5000:
-            data = request_json(MAKER_API_URL, {
-                "api_id": API_ID,
-                "affiliate_id": AFFILIATE_ID,
-                "site": SITE,
-                "floor_id": floor_id,
-                "hits": 100,
-                "offset": offset,
-                "output": "json",
-            })
+            try:
+                data = request_json(MAKER_API_URL, {
+                    "api_id": API_ID,
+                    "affiliate_id": AFFILIATE_ID,
+                    "site": SITE,
+                    "floor_id": floor_id,
+                    "hits": 100,
+                    "offset": offset,
+                    "output": "json",
+                })
+            except RuntimeError as exc:
+                if "HTTP 400" in str(exc) and "Invalid Request Error" in str(exc):
+                    print(f"  skip invalid MakerSearch floor_id={floor_id}")
+                    break
+                raise
             result = data.get("result", {}) or {}
             makers = result.get("makers") or result.get("maker") or []
             if isinstance(makers, dict):
@@ -165,7 +159,6 @@ def find_maker_ids(floor_ids, maker):
 def discover():
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
-
     today = date.today()
     start = today - timedelta(days=30)
     end = today + timedelta(days=180)
@@ -221,21 +214,14 @@ def discover():
         if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date):
             continue
         products.append({
-            "maker": maker["name"],
-            "maker_id": maker["id"],
-            "title": title,
-            "release_date": release_date,
-            "product_code": code,
-            "jan": jan,
-            "talent": talent_names(item),
-            "source_url": item.get("URL") or "",
-            "affiliate_url": item.get("affiliateURL") or "",
-            "dmm_url": item.get("URL") or "",
+            "maker": maker["name"], "maker_id": maker["id"], "title": title,
+            "release_date": release_date, "product_code": code, "jan": jan,
+            "talent": talent_names(item), "source_url": item.get("URL") or "",
+            "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "",
             "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched",
             "status": "upcoming" if release_date >= today.isoformat() else "released",
             "tags": [release_date[:4] + "年", release_date[:7] + "月", release_date[:7] + "発売", maker["name"]],
         })
-
     products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True)
     return products
 
