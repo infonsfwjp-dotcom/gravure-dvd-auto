@@ -22,6 +22,12 @@ jobs:
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
           DMM_SITE: FANZA
         run: python -m affiliate.dmm_discovery
+      - name: Merge official I-ONE catalog releases
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
+          DMM_SITE: FANZA
+        run: python -m affiliate.i_one_catalog
       - name: Generate static site
         env:
           SITE_URL: ${{ vars.SITE_URL }}
