@@ -29,7 +29,7 @@ def api_items(params):
     if key in API_CACHE:
         return API_CACHE[key]
     try:
-        r = SESSION.get(API_URL, params=params, timeout=12)
+        r = SESSION.get(API_URL, params=params, timeout=10)
         if r.status_code >= 400:
             API_CACHE[key] = []
             return []
@@ -63,6 +63,10 @@ def match_item(items, code, title, model):
         item_title = item_title_norm(item)
         if code_n and code_n in item_code:
             return item
+    # Only accept title/model matches when the returned item itself identifies
+    # the I-ONE/Line Communications maker. This prevents false positives.
+    for item in items:
+        item_title = item_title_norm(item)
         if maker_match(item):
             if title_n and title_n in item_title:
                 return item
@@ -75,7 +79,7 @@ def dmm_match(code, title, model, release):
     if not API_ID or not AFFILIATE_ID:
         return None
 
-    common = {
+    base = {
         "api_id": API_ID,
         "affiliate_id": AFFILIATE_ID,
         "site": "FANZA",
@@ -85,39 +89,31 @@ def dmm_match(code, title, model, release):
         "hits": 100,
         "offset": 1,
         "output": "json",
-        "mono_stock": "reserve",
-        "gte_date": f"{(release - timedelta(days=14)).isoformat()}T00:00:00",
-        "lte_date": f"{(release + timedelta(days=14)).isoformat()}T23:59:59",
     }
 
-    # One cached API request per unique search term. The previous implementation
-    # made up to 12 requests per product; this version normally needs only 1-3.
-    # We deliberately accept only an actual FANZA API item and its affiliateURL.
-    keywords = []
-    for value in (code, title, model):
-        value = str(value or "").strip()
-        if value and value not in keywords:
-            keywords.append(value)
-
-    variants = []
-    for keyword in keywords:
-        variants.append({"keyword": keyword, "strict": True})
-        variants.append({"keyword": keyword, "strict": False})
-
-    for variant in variants:
-        params = dict(common)
-        params["keyword"] = variant["keyword"]
-        if not variant["strict"]:
-            params.pop("mono_stock", None)
-            params.pop("gte_date", None)
-            params.pop("lte_date", None)
+    # The old implementation made up to 6 API calls per product (strict and
+    # non-strict variants for code/title/model). That made the catalog merge
+    # unnecessarily slow. Prefer exact product-code searches first, then one
+    # title and one model fallback. Date filtering is intentionally omitted from
+    # the fallback: FANZA's metadata/search index can lag the official catalog.
+    searches = [
+        (str(code or "").strip(), True),
+        (str(title or "").strip(), False),
+        (str(model or "").strip(), False),
+    ]
+    seen = set()
+    for keyword, reserve_only in searches:
+        if not keyword or keyword in seen:
+            continue
+        seen.add(keyword)
+        params = dict(base)
+        params["keyword"] = keyword
+        if reserve_only:
+            params["mono_stock"] = "reserve"
         items = api_items(params)
         matched = match_item(items, code, title, model)
         if matched:
-            print(
-                f"i-one FANZA API match code={code} keyword={variant['keyword']} "
-                f"strict={'yes' if variant['strict'] else 'no'}"
-            )
+            print(f"i-one FANZA API match code={code} keyword={keyword}")
             return matched
 
     return None
@@ -125,7 +121,7 @@ def dmm_match(code, title, model, release):
 
 def parse_detail(url, start, end):
     try:
-        r = SESSION.get(url, timeout=15)
+        r = SESSION.get(url, timeout=12)
         r.raise_for_status()
     except requests.RequestException:
         return None
@@ -181,7 +177,7 @@ def main():
     # date window and avoids spending most of the Actions budget on old pages.
     for page in range(1, 7):
         try:
-            r = SESSION.get(base.format(page), timeout=15)
+            r = SESSION.get(base.format(page), timeout=12)
             r.raise_for_status()
         except requests.RequestException:
             continue
