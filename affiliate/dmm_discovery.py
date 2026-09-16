@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import requests
+from bs4 import BeautifulSoup
 
 API_BASE = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList").rsplit("/", 1)[0]
 ITEM_API_URL = f"{API_BASE}/ItemList"
@@ -62,10 +63,6 @@ def maker_matches(item, maker, search_keyword=None):
     hay = " ".join(maker_names(item))
     if any(norm(k) in norm(hay) or norm(hay) in norm(k) for k in maker["keywords"] if hay):
         return True
-    # ItemList keyword search can match the manufacturer while iteminfo.maker is
-    # represented by a different label/alias. In that case verify the exact search
-    # keyword against the complete API item instead of rejecting the item solely
-    # because the maker field uses an alias.
     if search_keyword:
         raw = norm(json.dumps(item, ensure_ascii=False))
         return bool(norm(search_keyword)) and norm(search_keyword) in raw
@@ -163,6 +160,96 @@ def find_maker_ids(floor_ids, maker):
     return found
 
 
+def discover_i_one_fallback(start, end, all_items):
+    """Use the official I-ONE TV catalog only as a discovery fallback.
+
+    DMM/FANZA remains the source of the purchasable item and affiliate URL.
+    The official catalog is needed because current DMM MakerSearch/ItemList maker
+    filtering is returning zero I-ONE DVD records despite known upcoming releases.
+    """
+    maker = next(m for m in MAKERS if m["id"] == "i-one")
+    base = "https://i-one.tv/content/?maker=line-communications&page={}"
+    seen_urls = set()
+    candidates = []
+
+    for page in range(1, 11):
+        try:
+            r = requests.get(base.format(page), timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+            r.raise_for_status()
+        except requests.RequestException as exc:
+            print(f"  i-one fallback page={page} error={exc}")
+            continue
+        soup = BeautifulSoup(r.text, "html.parser")
+        links = []
+        for a in soup.find_all("a", href=True):
+            href = a.get("href", "")
+            if "/content/detail/" not in href:
+                continue
+            url = requests.compat.urljoin(r.url, href)
+            if url not in seen_urls:
+                seen_urls.add(url)
+                links.append(url)
+        print(f"  i-one fallback page={page} detail_links={len(links)}")
+        if not links:
+            break
+        candidates.extend(links)
+        if page >= 3 and len(candidates) >= 90:
+            break
+
+    for url in candidates:
+        try:
+            r = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+            r.raise_for_status()
+        except requests.RequestException:
+            continue
+        text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)
+        code_m = re.search(r"品番\s*[：:]\s*([A-Z0-9-]+)", text, re.I)
+        date_m = re.search(r"発売日\s*[：:]\s*(\d{4})/(\d{1,2})/(\d{1,2})", text)
+        if not code_m or not date_m:
+            continue
+        code = code_m.group(1).upper()
+        release = date(int(date_m.group(1)), int(date_m.group(2)), int(date_m.group(3)))
+        if not (start <= release <= end):
+            continue
+        title_node = soup.find("h1")
+        title_hint = title_node.get_text(" ", strip=True) if title_node else ""
+        candidates_key = [code, title_hint]
+        matched = None
+        for keyword in candidates_key:
+            if not keyword:
+                continue
+            try:
+                dmm_items = request_items({
+                    "api_id": API_ID,
+                    "affiliate_id": AFFILIATE_ID,
+                    "site": SITE,
+                    "service": "mono",
+                    "floor": "dvd",
+                    "gte_date": f"{(release - timedelta(days=3)).isoformat()}T00:00:00",
+                    "lte_date": f"{(release + timedelta(days=3)).isoformat()}T23:59:59",
+                    "keyword": keyword,
+                    "hits": 20,
+                    "offset": 1,
+                    "output": "json",
+                })
+            except RuntimeError:
+                continue
+            for item in dmm_items:
+                item_code = str(item.get("maker_product") or item.get("product_id") or item.get("content_id") or "").upper()
+                if code in item_code or item_code in code:
+                    matched = item
+                    break
+            if matched:
+                break
+        if matched:
+            key = matched.get("product_id") or matched.get("content_id") or matched.get("URL")
+            if key:
+                all_items[(maker["id"], key)] = (maker, matched)
+                print(f"  i-one fallback matched code={code} title={matched.get('title','')}")
+        else:
+            print(f"  i-one fallback no DMM match code={code} title={title_hint}")
+
+
 def discover():
     if not API_ID or not AFFILIATE_ID:
         raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
@@ -226,6 +313,10 @@ def discover():
                     time.sleep(0.1)
                 time.sleep(0.2)
             cursor = window_end + timedelta(days=1)
+
+    if not any(k[0] == "i-one" for k in all_items):
+        print("  i-one DMM discovery returned 0; starting official catalog fallback")
+        discover_i_one_fallback(start, end, all_items)
 
     products = []
     for maker, item in all_items.values():
