@@ -86,23 +86,43 @@ def parse_detail(url, start, end):
     return code, release, title, model, url
 
 
+def apply_match(product, matched, fallback_title, code, model):
+    item_title = str(matched.get("title") or fallback_title).strip()
+    product_code = str(matched.get("maker_product") or matched.get("product_id") or code).strip()
+    affiliate_url = str(matched.get("affiliateURL") or "")
+    dmm_url = str(matched.get("URL") or "")
+    product["title"] = item_title
+    product["product_code"] = product_code
+    product["affiliate_url"] = affiliate_url
+    product["dmm_url"] = dmm_url
+    product["affiliate_match_status"] = "matched" if affiliate_url else "unmatched"
+    if model:
+        product["talent"] = [model]
+    return bool(affiliate_url)
+
+
 def main():
     if not DATA.exists():
         return
     products = json.loads(DATA.read_text(encoding="utf-8"))
-    existing_codes = {norm(p.get("product_code")) for p in products if p.get("product_code")}
+    existing_by_code = {
+        norm(p.get("product_code")): p
+        for p in products
+        if p.get("product_code")
+    }
     start = date.today() - timedelta(days=30)
     end = date.today() + timedelta(days=180)
     base = "https://i-one.tv/content/?maker=line-communications&page={}"
     seen = set()
     details = []
-    for page in range(1, 4):
+    for page in range(1, 11):
         try:
             r = requests.get(base.format(page), timeout=30, headers={"User-Agent": "Mozilla/5.0"})
             r.raise_for_status()
         except requests.RequestException:
             continue
         soup = BeautifulSoup(r.text, "html.parser")
+        page_links = 0
         for a in soup.find_all("a", href=True):
             href = a.get("href", "")
             if "/content/detail/" not in href:
@@ -111,15 +131,34 @@ def main():
             if url not in seen:
                 seen.add(url)
                 details.append(url)
+                page_links += 1
+        print(f"i-one catalog page={page} detail_links={page_links}")
+        if not page_links:
+            break
 
     added = 0
+    enriched = 0
     for url in details:
         parsed = parse_detail(url, start, end)
         if not parsed:
             continue
         code, release, title, model, source_url = parsed
-        if norm(code) in existing_codes:
+        existing = existing_by_code.get(norm(code))
+
+        # Products already listed without a FANZA match must be retried every run.
+        # This is important because DMM/FANZA may expose a preorder only after
+        # its reservation record is published. Once matched, we never overwrite it.
+        if existing:
+            if existing.get("affiliate_match_status") == "matched" and existing.get("affiliate_url"):
+                continue
+            matched = dmm_match(code, title, model, release)
+            if matched and apply_match(existing, matched, title, code, model):
+                existing["source_url"] = source_url
+                existing["status"] = "upcoming" if release >= date.today() else "released"
+                enriched += 1
+                print(f"i-one affiliate enriched code={code}")
             continue
+
         matched = dmm_match(code, title, model, release)
         if matched:
             item_title = str(matched.get("title") or title).strip()
@@ -133,7 +172,7 @@ def main():
             affiliate_url = ""
             dmm_url = ""
             talent = [model] if model else []
-        products.append({
+        product = {
             "maker": "ラインコミュニケーションズ / I-ONE",
             "maker_id": "i-one",
             "title": item_title,
@@ -147,13 +186,14 @@ def main():
             "affiliate_match_status": "matched" if affiliate_url else "unmatched",
             "status": "upcoming" if release >= date.today() else "released",
             "tags": [f"{release.year}年", release.strftime("%Y-%m"), f"{release.strftime('%Y-%m')}発売", "ラインコミュニケーションズ / I-ONE"],
-        })
-        existing_codes.add(norm(code))
+        }
+        products.append(product)
+        existing_by_code[norm(code)] = product
         added += 1
 
     products.sort(key=lambda p: (p.get("release_date") or "", p.get("maker") or "", p.get("title") or ""), reverse=True)
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"i-one official catalog added={added}")
+    print(f"i-one official catalog added={added} enriched={enriched}")
     print(f"products total={len(products)}")
 
 
