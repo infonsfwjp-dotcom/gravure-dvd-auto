@@ -15,18 +15,29 @@ API_URL = "https://api.dmm.com/affiliate/v3/ItemList"
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
 
+SESSION = requests.Session()
+SESSION.headers.update({"User-Agent": "Mozilla/5.0"})
+API_CACHE: dict[tuple, list] = {}
+
 
 def norm(s: str) -> str:
     return re.sub(r"[\s　「」『』（）()\-ー・:：/／.。,，!?！？]+", "", str(s or "")).lower()
 
 
 def api_items(params):
+    key = tuple(sorted(params.items()))
+    if key in API_CACHE:
+        return API_CACHE[key]
     try:
-        r = requests.get(API_URL, params=params, timeout=30)
+        r = SESSION.get(API_URL, params=params, timeout=12)
         if r.status_code >= 400:
+            API_CACHE[key] = []
             return []
-        return r.json().get("result", {}).get("items", []) or []
+        items = r.json().get("result", {}).get("items", []) or []
+        API_CACHE[key] = items
+        return items
     except Exception:
+        API_CACHE[key] = []
         return []
 
 
@@ -69,17 +80,19 @@ def dmm_match(code, title, model, release):
         "affiliate_id": AFFILIATE_ID,
         "site": "FANZA",
         "service": "mono",
+        "floor": "dvd",
         "sort": "date",
         "hits": 100,
         "offset": 1,
         "output": "json",
+        "mono_stock": "reserve",
+        "gte_date": f"{(release - timedelta(days=14)).isoformat()}T00:00:00",
+        "lte_date": f"{(release + timedelta(days=14)).isoformat()}T23:59:59",
     }
 
-    # DMM's reservation catalogue can expose a product under a slightly
-    # different index/query combination. Try the strict query first, then
-    # progressively relax date/floor/stock filters. We never manufacture a
-    # FANZA URL: a match is accepted only when the official API returns the
-    # actual product and its affiliateURL.
+    # One cached API request per unique search term. The previous implementation
+    # made up to 12 requests per product; this version normally needs only 1-3.
+    # We deliberately accept only an actual FANZA API item and its affiliateURL.
     keywords = []
     for value in (code, title, model):
         value = str(value or "").strip()
@@ -88,33 +101,23 @@ def dmm_match(code, title, model, release):
 
     variants = []
     for keyword in keywords:
-        variants.extend([
-            {"keyword": keyword, "floor": "dvd", "mono_stock": "reserve", "with_date": True},
-            {"keyword": keyword, "floor": "dvd", "mono_stock": "stock", "with_date": False},
-            {"keyword": keyword, "floor": "dvd", "with_date": False},
-            {"keyword": keyword, "with_date": False},
-        ])
+        variants.append({"keyword": keyword, "strict": True})
+        variants.append({"keyword": keyword, "strict": False})
 
-    seen = set()
     for variant in variants:
         params = dict(common)
-        keyword = variant["keyword"]
-        params["keyword"] = keyword
-        if "floor" in variant:
-            params["floor"] = variant["floor"]
-        if "mono_stock" in variant:
-            params["mono_stock"] = variant["mono_stock"]
-        if variant.get("with_date"):
-            params["gte_date"] = f"{(release - timedelta(days=7)).isoformat()}T00:00:00"
-            params["lte_date"] = f"{(release + timedelta(days=7)).isoformat()}T23:59:59"
-        key = tuple(sorted(params.items()))
-        if key in seen:
-            continue
-        seen.add(key)
+        params["keyword"] = variant["keyword"]
+        if not variant["strict"]:
+            params.pop("mono_stock", None)
+            params.pop("gte_date", None)
+            params.pop("lte_date", None)
         items = api_items(params)
         matched = match_item(items, code, title, model)
         if matched:
-            print(f"i-one FANZA API match code={code} keyword={keyword} floor={params.get('floor','-')} stock={params.get('mono_stock','-')} date={'yes' if 'gte_date' in params else 'no'}")
+            print(
+                f"i-one FANZA API match code={code} keyword={variant['keyword']} "
+                f"strict={'yes' if variant['strict'] else 'no'}"
+            )
             return matched
 
     return None
@@ -122,7 +125,7 @@ def dmm_match(code, title, model, release):
 
 def parse_detail(url, start, end):
     try:
-        r = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+        r = SESSION.get(url, timeout=15)
         r.raise_for_status()
     except requests.RequestException:
         return None
@@ -174,9 +177,11 @@ def main():
     base = "https://i-one.tv/content/?maker=line-communications&page={}"
     seen = set()
     details = []
-    for page in range(1, 11):
+    # The catalogue is newest-first. Six pages is enough for the configured
+    # date window and avoids spending most of the Actions budget on old pages.
+    for page in range(1, 7):
         try:
-            r = requests.get(base.format(page), timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+            r = SESSION.get(base.format(page), timeout=15)
             r.raise_for_status()
         except requests.RequestException:
             continue
