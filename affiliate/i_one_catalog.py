@@ -30,34 +30,93 @@ def api_items(params):
         return []
 
 
+def item_code_blob(item):
+    return norm(" ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid")))
+
+
+def item_title_norm(item):
+    return norm(item.get("title") or "")
+
+
+def maker_match(item):
+    raw = norm(json.dumps(item, ensure_ascii=False))
+    return any(x in raw for x in (norm("ラインコミュニケーションズ"), norm("I-ONE"), norm("アイドルワン")))
+
+
+def match_item(items, code, title, model):
+    code_n = norm(code)
+    title_n = norm(title)
+    model_n = norm(model)
+    for item in items:
+        item_code = item_code_blob(item)
+        item_title = item_title_norm(item)
+        if code_n and code_n in item_code:
+            return item
+        if maker_match(item):
+            if title_n and title_n in item_title:
+                return item
+            if model_n and model_n in item_title:
+                return item
+    return None
+
+
 def dmm_match(code, title, model, release):
     if not API_ID or not AFFILIATE_ID:
         return None
-    base = {
+
+    common = {
         "api_id": API_ID,
         "affiliate_id": AFFILIATE_ID,
         "site": "FANZA",
         "service": "mono",
-        "floor": "dvd",
-        "gte_date": f"{(release - timedelta(days=7)).isoformat()}T00:00:00",
-        "lte_date": f"{(release + timedelta(days=7)).isoformat()}T23:59:59",
         "sort": "date",
-        "mono_stock": "reserve",
         "hits": 100,
         "offset": 1,
         "output": "json",
     }
-    for keyword in (code, title, model):
-        if not keyword:
+
+    # DMM's reservation catalogue can expose a product under a slightly
+    # different index/query combination. Try the strict query first, then
+    # progressively relax date/floor/stock filters. We never manufacture a
+    # FANZA URL: a match is accepted only when the official API returns the
+    # actual product and its affiliateURL.
+    keywords = []
+    for value in (code, title, model):
+        value = str(value or "").strip()
+        if value and value not in keywords:
+            keywords.append(value)
+
+    variants = []
+    for keyword in keywords:
+        variants.extend([
+            {"keyword": keyword, "floor": "dvd", "mono_stock": "reserve", "with_date": True},
+            {"keyword": keyword, "floor": "dvd", "mono_stock": "stock", "with_date": False},
+            {"keyword": keyword, "floor": "dvd", "with_date": False},
+            {"keyword": keyword, "with_date": False},
+        ])
+
+    seen = set()
+    for variant in variants:
+        params = dict(common)
+        keyword = variant["keyword"]
+        params["keyword"] = keyword
+        if "floor" in variant:
+            params["floor"] = variant["floor"]
+        if "mono_stock" in variant:
+            params["mono_stock"] = variant["mono_stock"]
+        if variant.get("with_date"):
+            params["gte_date"] = f"{(release - timedelta(days=7)).isoformat()}T00:00:00"
+            params["lte_date"] = f"{(release + timedelta(days=7)).isoformat()}T23:59:59"
+        key = tuple(sorted(params.items()))
+        if key in seen:
             continue
-        items = api_items({**base, "keyword": keyword})
-        for item in items:
-            raw = norm(json.dumps(item, ensure_ascii=False))
-            item_code = norm(" ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid")))
-            item_title = norm(item.get("title") or "")
-            maker_ok = any(x in raw for x in (norm("ラインコミュニケーションズ"), norm("I-ONE"), norm("アイドルワン")))
-            if norm(code) in item_code or (maker_ok and (norm(title) in item_title or (model and norm(model) in item_title))):
-                return item
+        seen.add(key)
+        items = api_items(params)
+        matched = match_item(items, code, title, model)
+        if matched:
+            print(f"i-one FANZA API match code={code} keyword={keyword} floor={params.get('floor','-')} stock={params.get('mono_stock','-')} date={'yes' if 'gte_date' in params else 'no'}")
+            return matched
+
     return None
 
 
@@ -145,9 +204,6 @@ def main():
         code, release, title, model, source_url = parsed
         existing = existing_by_code.get(norm(code))
 
-        # Products already listed without a FANZA match must be retried every run.
-        # This is important because DMM/FANZA may expose a preorder only after
-        # its reservation record is published. Once matched, we never overwrite it.
         if existing:
             if existing.get("affiliate_match_status") == "matched" and existing.get("affiliate_url"):
                 continue
