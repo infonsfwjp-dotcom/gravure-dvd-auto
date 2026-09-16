@@ -6,7 +6,7 @@ import re
 import time
 from datetime import date, timedelta
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -143,8 +143,45 @@ def find_maker_ids(floor_ids, maker):
     return found
 
 
+def extract_dmm_cids_from_html(html: str):
+    found = []
+    def add(value):
+        if not value: return
+        value = unquote(unquote(str(value)))
+        for m in re.finditer(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", value, re.I):
+            cid = m.group(1).lower()
+            if cid not in found: found.append(cid)
+        for m in re.finditer(r"(?:^|[?&])cid=([a-zA-Z0-9_-]+)", value, re.I):
+            cid = m.group(1).lower()
+            if cid not in found: found.append(cid)
+    add(html)
+    soup = BeautifulSoup(html, "html.parser")
+    for a in soup.find_all("a", href=True): add(a.get("href", ""))
+    return found[:20]
+
+
+def official_dmm_cids(soup):
+    found = []
+    for a in soup.find_all("a", href=True):
+        href = unquote(unquote(a.get("href", "")))
+        label = a.get_text(" ", strip=True)
+        if "dmm" not in href.lower() and "fanza" not in href.lower() and "DMM" not in label.upper():
+            continue
+        for cid in extract_dmm_cids_from_html(href):
+            if cid not in found: found.append(cid)
+        try:
+            parsed = urlparse(href)
+            for value in parse_qs(parsed.query).values():
+                for v in value:
+                    for cid in extract_dmm_cids_from_html(v):
+                        if cid not in found: found.append(cid)
+        except ValueError:
+            pass
+    return found[:20]
+
+
 def fanza_search_cids(keyword):
-    """Find DMM/FANZA DVD content IDs from the public search page, then let the API provide the affiliate URL."""
+    """Legacy fallback. Official I-ONE purchase links are preferred before this route."""
     if not keyword: return []
     urls = [
         f"https://www.dmm.co.jp/mono/dvd/-/search/=/searchstr={quote(keyword)}/",
@@ -158,20 +195,30 @@ def fanza_search_cids(keyword):
             if r.status_code >= 400: continue
         except requests.RequestException:
             continue
-        text = r.text
-        for m in re.finditer(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", text):
-            cid = m.group(1).lower()
+        for cid in extract_dmm_cids_from_html(r.text):
             if cid not in found: found.append(cid)
-        soup = BeautifulSoup(text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            href = a.get("href", "")
-            m = re.search(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", href)
-            if m:
-                cid = m.group(1).lower()
-                if cid not in found: found.append(cid)
         if found: break
     print(f"  FANZA web search keyword={keyword!r} cids={found[:10]}")
     return found[:20]
+
+
+def dmm_match_for_cids(cids, code, title_hint, model_hint):
+    for cid in cids:
+        try:
+            dmm_items = request_items({"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "cid": cid, "hits": 20, "offset": 1, "output": "json"})
+        except RuntimeError:
+            continue
+        for item in dmm_items:
+            raw = norm(json.dumps(item, ensure_ascii=False))
+            item_makers = norm(" ".join(maker_names(item)))
+            item_code = norm(" ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid")))
+            title_norm = norm(item.get("title") or "")
+            code_ok = norm(code) in item_code
+            maker_ok = "ラインコミュニケーションズ" in item_makers or "i-one" in raw or "アイドルワン" in raw
+            title_ok = bool(title_hint and norm(title_hint) in title_norm) or bool(model_hint and norm(model_hint) in title_norm)
+            if code_ok or (maker_ok and title_ok) or cid in item_code:
+                return item
+    return None
 
 
 def discover_i_one_fallback(start, end, all_items):
@@ -215,33 +262,22 @@ def discover_i_one_fallback(start, end, all_items):
         model_hint = model_m.group(1).strip() if model_m else ""
         title_hint = re.sub(r"\s*\[[^\]]*\]", "", title_hint).strip()
 
-        # First use the public FANZA/DMM search to obtain the site's own CID.
-        # The CID is then passed to ItemList, which is the authoritative source for
-        # the product record and affiliateURL.
-        web_cids = []
-        for search_term in (code, title_hint, model_hint):
-            if search_term:
-                web_cids.extend(fanza_search_cids(search_term))
-                if web_cids: break
+        # The official I-ONE page exposes the DMM purchase destination.
+        # Resolve that canonical link first; this avoids scraping FANZA search pages.
+        official_cids = official_dmm_cids(soup)
+        if official_cids:
+            print(f"  i-one official DMM link code={code} cids={official_cids[:5]}")
+        matched = dmm_match_for_cids(official_cids, code, title_hint, model_hint)
 
-        matched = None
-        for cid in web_cids:
-            try:
-                dmm_items = request_items({"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "cid": cid, "hits": 20, "offset": 1, "output": "json"})
-            except RuntimeError: continue
-            for item in dmm_items:
-                raw = norm(json.dumps(item, ensure_ascii=False))
-                item_makers = norm(" ".join(maker_names(item)))
-                item_code = norm(" ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid")))
-                title_norm = norm(item.get("title") or "")
-                code_ok = norm(code) in item_code
-                maker_ok = "ラインコミュニケーションズ" in item_makers or "i-one" in raw or "アイドルワン" in raw
-                title_ok = norm(title_hint) in title_norm or (model_hint and norm(model_hint) in title_norm)
-                if code_ok or (maker_ok and title_ok) or cid in item_code:
-                    matched = item; break
-            if matched: break
+        # Only use the old public-search fallback when the official page has no DMM CID.
+        if not matched:
+            for search_term in (code, title_hint, model_hint):
+                if not search_term: continue
+                web_cids = fanza_search_cids(search_term)
+                matched = dmm_match_for_cids(web_cids, code, title_hint, model_hint)
+                if matched: break
 
-        # Keep the existing API keyword fallback as a secondary route.
+        # Keep the existing API keyword fallback as a final route.
         if not matched:
             for keyword in (code, title_hint, model_hint):
                 if not keyword: continue
