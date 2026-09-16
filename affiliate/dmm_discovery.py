@@ -6,6 +6,7 @@ import re
 import time
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 from bs4 import BeautifulSoup
@@ -142,6 +143,37 @@ def find_maker_ids(floor_ids, maker):
     return found
 
 
+def fanza_search_cids(keyword):
+    """Find DMM/FANZA DVD content IDs from the public search page, then let the API provide the affiliate URL."""
+    if not keyword: return []
+    urls = [
+        f"https://www.dmm.co.jp/mono/dvd/-/search/=/searchstr={quote(keyword)}/",
+        f"https://www.dmm.co.jp/search/=/searchstr={quote(keyword)}/",
+    ]
+    found = []
+    headers = {"User-Agent": "Mozilla/5.0", "Accept-Language": "ja,en;q=0.8"}
+    for search_url in urls:
+        try:
+            r = requests.get(search_url, timeout=30, headers=headers, allow_redirects=True)
+            if r.status_code >= 400: continue
+        except requests.RequestException:
+            continue
+        text = r.text
+        for m in re.finditer(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", text):
+            cid = m.group(1).lower()
+            if cid not in found: found.append(cid)
+        soup = BeautifulSoup(text, "html.parser")
+        for a in soup.find_all("a", href=True):
+            href = a.get("href", "")
+            m = re.search(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", href)
+            if m:
+                cid = m.group(1).lower()
+                if cid not in found: found.append(cid)
+        if found: break
+    print(f"  FANZA web search keyword={keyword!r} cids={found[:10]}")
+    return found[:20]
+
+
 def discover_i_one_fallback(start, end, all_items):
     maker = next(m for m in MAKERS if m["id"] == "i-one")
     base = "https://i-one.tv/content/?maker=line-communications&page={}"
@@ -182,25 +214,53 @@ def discover_i_one_fallback(start, end, all_items):
         model_m = re.search(r"モデル名\s*[：:]\s*([^\n]{1,80}?)(?:\s+商品詳細|\s+ファイル内容|\s+発売日)", text)
         model_hint = model_m.group(1).strip() if model_m else ""
         title_hint = re.sub(r"\s*\[[^\]]*\]", "", title_hint).strip()
-        keywords = [code, title_hint, model_hint]
+
+        # First use the public FANZA/DMM search to obtain the site's own CID.
+        # The CID is then passed to ItemList, which is the authoritative source for
+        # the product record and affiliateURL.
+        web_cids = []
+        for search_term in (code, title_hint, model_hint):
+            if search_term:
+                web_cids.extend(fanza_search_cids(search_term))
+                if web_cids: break
+
         matched = None
-        for keyword in keywords:
-            if not keyword: continue
+        for cid in web_cids:
             try:
-                params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "gte_date": f"{(release-timedelta(days=5)).isoformat()}T00:00:00", "lte_date": f"{(release+timedelta(days=5)).isoformat()}T23:59:59", "keyword": keyword, "sort": "match", "hits": 100, "offset": 1, "output": "json"}
-                dmm_items = request_items(params)
+                dmm_items = request_items({"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "cid": cid, "hits": 20, "offset": 1, "output": "json"})
             except RuntimeError: continue
             for item in dmm_items:
                 raw = norm(json.dumps(item, ensure_ascii=False))
                 item_makers = norm(" ".join(maker_names(item)))
-                item_code = norm(" ".join(str(item.get(k) or "") for k in ("maker_product","product_id","content_id","cid")))
+                item_code = norm(" ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid")))
                 title_norm = norm(item.get("title") or "")
                 code_ok = norm(code) in item_code
                 maker_ok = "ラインコミュニケーションズ" in item_makers or "i-one" in raw or "アイドルワン" in raw
-                title_ok = norm(keyword) in title_norm or (model_hint and norm(model_hint) in title_norm)
-                if code_ok or (maker_ok and title_ok):
+                title_ok = norm(title_hint) in title_norm or (model_hint and norm(model_hint) in title_norm)
+                if code_ok or (maker_ok and title_ok) or cid in item_code:
                     matched = item; break
             if matched: break
+
+        # Keep the existing API keyword fallback as a secondary route.
+        if not matched:
+            for keyword in (code, title_hint, model_hint):
+                if not keyword: continue
+                try:
+                    params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "gte_date": f"{(release-timedelta(days=5)).isoformat()}T00:00:00", "lte_date": f"{(release+timedelta(days=5)).isoformat()}T23:59:59", "keyword": keyword, "sort": "match", "hits": 100, "offset": 1, "output": "json"}
+                    dmm_items = request_items(params)
+                except RuntimeError: continue
+                for item in dmm_items:
+                    raw = norm(json.dumps(item, ensure_ascii=False))
+                    item_makers = norm(" ".join(maker_names(item)))
+                    item_code = norm(" ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid")))
+                    title_norm = norm(item.get("title") or "")
+                    code_ok = norm(code) in item_code
+                    maker_ok = "ラインコミュニケーションズ" in item_makers or "i-one" in raw or "アイドルワン" in raw
+                    title_ok = norm(keyword) in title_norm or (model_hint and norm(model_hint) in title_norm)
+                    if code_ok or (maker_ok and title_ok):
+                        matched = item; break
+                if matched: break
+
         if matched:
             key = matched.get("product_id") or matched.get("content_id") or matched.get("URL")
             if key:
