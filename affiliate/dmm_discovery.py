@@ -58,11 +58,18 @@ def genre_names(item):
     return names
 
 
-def maker_matches(item, maker):
-    hay = " ".join(maker_names(item)).lower()
-    if not hay:
-        return not maker["strict_idol"]
-    return any(norm(k) in norm(hay) or norm(hay) in norm(k) for k in maker["keywords"])
+def maker_matches(item, maker, search_keyword=None):
+    hay = " ".join(maker_names(item))
+    if any(norm(k) in norm(hay) or norm(hay) in norm(k) for k in maker["keywords"] if hay):
+        return True
+    # ItemList keyword search can match the manufacturer while iteminfo.maker is
+    # represented by a different label/alias. In that case verify the exact search
+    # keyword against the complete API item instead of rejecting the item solely
+    # because the maker field uses an alias.
+    if search_keyword:
+        raw = norm(json.dumps(item, ensure_ascii=False))
+        return bool(norm(search_keyword)) and norm(search_keyword) in raw
+    return not hay and not maker["strict_idol"]
 
 
 def is_takeshobo_idol(item):
@@ -175,9 +182,6 @@ def discover():
         cursor = start
         while cursor <= end:
             window_end = min(cursor + timedelta(days=30), end)
-            # Always run both maker-ID and exact manufacturer-name searches.
-            # Some FANZA/DMM catalog records are not returned by MakerSearch-backed
-            # article filtering even when the maker ID exists.
             queries = [(None, mid) for mid in ids]
             queries += [(keyword, None) for keyword in maker["keywords"]]
             seen_query_keys = set()
@@ -186,31 +190,40 @@ def discover():
                 if query_key in seen_query_keys:
                     continue
                 seen_query_keys.add(query_key)
-                params = {
-                    "api_id": API_ID,
-                    "affiliate_id": AFFILIATE_ID,
-                    "site": SITE,
-                    "service": "mono",
-                    "floor": "dvd",
-                    "gte_date": f"{cursor.isoformat()}T00:00:00",
-                    "lte_date": f"{window_end.isoformat()}T23:59:59",
-                    "sort": "date",
-                    "hits": 100,
-                    "output": "json",
-                }
-                if maker_id:
-                    params["article"] = "maker"
-                    params["article_id"] = maker_id
-                else:
-                    params["keyword"] = keyword
-                for item in request_items(params):
-                    if not maker_matches(item, maker):
-                        continue
-                    if maker["strict_idol"] and not is_takeshobo_idol(item):
-                        continue
-                    key = item.get("product_id") or item.get("content_id") or item.get("URL")
-                    if key:
-                        all_items[(maker["id"], key)] = (maker, item)
+                offset = 1
+                while offset <= 5000:
+                    params = {
+                        "api_id": API_ID,
+                        "affiliate_id": AFFILIATE_ID,
+                        "site": SITE,
+                        "service": "mono",
+                        "floor": "dvd",
+                        "gte_date": f"{cursor.isoformat()}T00:00:00",
+                        "lte_date": f"{window_end.isoformat()}T23:59:59",
+                        "sort": "date",
+                        "hits": 100,
+                        "offset": offset,
+                        "output": "json",
+                    }
+                    if maker_id:
+                        params["article"] = "maker"
+                        params["article_id"] = maker_id
+                    else:
+                        params["keyword"] = keyword
+                    items = request_items(params)
+                    print(f"  query maker={maker['id']} keyword={keyword or '-'} maker_id={maker_id or '-'} offset={offset} items={len(items)}")
+                    for item in items:
+                        if not maker_matches(item, maker, search_keyword=keyword):
+                            continue
+                        if maker["strict_idol"] and not is_takeshobo_idol(item):
+                            continue
+                        key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                        if key:
+                            all_items[(maker["id"], key)] = (maker, item)
+                    if len(items) < 100:
+                        break
+                    offset += 100
+                    time.sleep(0.1)
                 time.sleep(0.2)
             cursor = window_end + timedelta(days=1)
 
