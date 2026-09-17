@@ -81,7 +81,7 @@ def search(product, session):
     title = str(product.get("title") or "").strip()
     talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
     dmm_url = str(product.get("dmm_url") or product.get("source_url") or "")
-    cid_match = re.search(r"cid=([A-Za-z0-9_-]+)", dmm_url, re.I)
+    cid_match = re.search(r"cid=([^/?&#]+)", dmm_url, re.I)
     cid = cid_match.group(1) if cid_match else ""
 
     base = {
@@ -97,7 +97,8 @@ def search(product, session):
 
     searches = []
     if cid:
-        searches.append({**base, "cid": cid})
+        # ItemList documents this lookup as content_id rather than cid.
+        searches.append({**base, "content_id": cid})
     if code:
         searches.append({**base, "keyword": code})
     if title and talent:
@@ -124,8 +125,6 @@ def search(product, session):
     title_l = title.lower()
     talent_l = talent.lower()
 
-    # Prefer exact product-code/CID matches so broad keyword fallback cannot
-    # attach sample media from a different DVD.
     for item in candidates:
         blob = item_blob(item)
         if code_l and code_l in blob:
@@ -133,8 +132,6 @@ def search(product, session):
         if cid_l and cid_l in blob:
             return item
 
-    # If FANZA does not expose the code/CID in searchable fields, require a
-    # strong title match, optionally reinforced by the model name.
     for item in candidates:
         blob = item_blob(item)
         if title_l and title_l in blob and (not talent_l or talent_l in blob):
