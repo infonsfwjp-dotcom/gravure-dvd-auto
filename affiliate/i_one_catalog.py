@@ -60,7 +60,6 @@ def match_item(items, code, title, model):
     model_n = norm(model)
     for item in items:
         item_code = item_code_blob(item)
-        item_title = item_title_norm(item)
         if code_n and code_n in item_code:
             return item
     # Only accept title/model matches when the returned item itself identifies
@@ -91,11 +90,9 @@ def dmm_match(code, title, model, release):
         "output": "json",
     }
 
-    # The old implementation made up to 6 API calls per product (strict and
-    # non-strict variants for code/title/model). That made the catalog merge
-    # unnecessarily slow. Prefer exact product-code searches first, then one
-    # title and one model fallback. Date filtering is intentionally omitted from
-    # the fallback: FANZA's metadata/search index can lag the official catalog.
+    # Prefer exact product-code search first, then title/model fallbacks.
+    # Date/stock filters are intentionally omitted because FANZA's index can
+    # lag the official I-ONE catalog for upcoming reservations.
     searches = [
         (str(code or "").strip(), True),
         (str(title or "").strip(), False),
@@ -117,6 +114,27 @@ def dmm_match(code, title, model, release):
             return matched
 
     return None
+
+
+def should_retry(product, today):
+    checked = str(product.get("affiliate_checked_at") or "")
+    if not checked:
+        return True
+    try:
+        checked_date = date.fromisoformat(checked)
+    except ValueError:
+        return True
+    # Once a release is within 14 days, check every run. Before that, retry
+    # unmatched products every 3 days to avoid spending Actions time on the
+    # same FANZA API misses while still catching newly indexed reservations.
+    release_raw = str(product.get("release_date") or "")
+    try:
+        release = date.fromisoformat(release_raw)
+    except ValueError:
+        release = today + timedelta(days=9999)
+    if (release - today).days <= 14:
+        return True
+    return (today - checked_date).days >= 3
 
 
 def parse_detail(url, start, end):
@@ -154,6 +172,7 @@ def apply_match(product, matched, fallback_title, code, model):
     product["affiliate_url"] = affiliate_url
     product["dmm_url"] = dmm_url
     product["affiliate_match_status"] = "matched" if affiliate_url else "unmatched"
+    product["affiliate_checked_at"] = date.today().isoformat()
     if model:
         product["talent"] = [model]
     return bool(affiliate_url)
@@ -168,8 +187,9 @@ def main():
         for p in products
         if p.get("product_code")
     }
-    start = date.today() - timedelta(days=30)
-    end = date.today() + timedelta(days=180)
+    today = date.today()
+    start = today - timedelta(days=30)
+    end = today + timedelta(days=180)
     base = "https://i-one.tv/content/?maker=line-communications&page={}"
     seen = set()
     details = []
@@ -198,6 +218,8 @@ def main():
 
     added = 0
     enriched = 0
+    checked = 0
+    skipped = 0
     for url in details:
         parsed = parse_detail(url, start, end)
         if not parsed:
@@ -208,10 +230,15 @@ def main():
         if existing:
             if existing.get("affiliate_match_status") == "matched" and existing.get("affiliate_url"):
                 continue
+            if not should_retry(existing, today):
+                skipped += 1
+                continue
             matched = dmm_match(code, title, model, release)
+            existing["affiliate_checked_at"] = today.isoformat()
+            checked += 1
             if matched and apply_match(existing, matched, title, code, model):
                 existing["source_url"] = source_url
-                existing["status"] = "upcoming" if release >= date.today() else "released"
+                existing["status"] = "upcoming" if release >= today else "released"
                 enriched += 1
                 print(f"i-one affiliate enriched code={code}")
             continue
@@ -223,12 +250,14 @@ def main():
             affiliate_url = str(matched.get("affiliateURL") or "")
             dmm_url = str(matched.get("URL") or "")
             talent = [model] if model else []
+            match_status = "matched" if affiliate_url else "unmatched"
         else:
             item_title = title or (f"{model} {code}" if model else code)
             product_code = code
             affiliate_url = ""
             dmm_url = ""
             talent = [model] if model else []
+            match_status = "unmatched"
         product = {
             "maker": "ラインコミュニケーションズ / I-ONE",
             "maker_id": "i-one",
@@ -240,8 +269,9 @@ def main():
             "source_url": source_url,
             "affiliate_url": affiliate_url,
             "dmm_url": dmm_url,
-            "affiliate_match_status": "matched" if affiliate_url else "unmatched",
-            "status": "upcoming" if release >= date.today() else "released",
+            "affiliate_match_status": match_status,
+            "affiliate_checked_at": today.isoformat(),
+            "status": "upcoming" if release >= today else "released",
             "tags": [f"{release.year}年", release.strftime("%Y-%m"), f"{release.strftime('%Y-%m')}発売", "ラインコミュニケーションズ / I-ONE"],
         }
         products.append(product)
@@ -250,7 +280,7 @@ def main():
 
     products.sort(key=lambda p: (p.get("release_date") or "", p.get("maker") or "", p.get("title") or ""), reverse=True)
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"i-one official catalog added={added} enriched={enriched}")
+    print(f"i-one official catalog added={added} enriched={enriched} checked={checked} skipped={skipped}")
     print(f"products total={len(products)}")
 
 
