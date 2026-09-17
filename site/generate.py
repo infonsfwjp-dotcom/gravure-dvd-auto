@@ -47,7 +47,7 @@ def write(rel, title, body, description="グラビアDVDの新発売情報を月
 def card(p):
     href = product_path(p)
     talent = "、".join(p.get("talent") or [])
-    badge = '<span class="badge">サンプル映像あり</span>' if p.get("sample_available") else ''
+    badge = '<span class="badge">サンプル映像あり</span>' if (p.get("sample_available") and p.get("sample_video_url")) else ''
     return f'<article class="card"><div class="date">{esc(p.get("release_date"))}</div>{badge}<h2><a href="{href}">{esc(p.get("title"))}</a></h2><p>{esc(p.get("maker"))}</p>{f"<p>{esc(talent)}</p>" if talent else ""}<a class="btn" href="{href}">詳細を見る</a></article>'
 
 
@@ -91,7 +91,7 @@ def product_page(p):
         else:
             media += f'<iframe src="{esc(sample_video)}" title="{esc(title)} サンプル映像" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>'
         media += '</div>'
-    if sample_images:
+    if has_sample and sample_images:
         media += '<div class="sample-video"><h3>サンプル画像</h3><div class="gallery">'
         media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="lazy"></a>' for img in sample_images)
         media += '</div></div>'
