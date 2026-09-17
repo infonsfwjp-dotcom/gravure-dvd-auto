@@ -91,6 +91,45 @@ def talent_names(item):
     return out
 
 
+def _urls_from_value(value):
+    found = []
+    if isinstance(value, str) and value.startswith(("http://", "https://")):
+        return [value]
+    if isinstance(value, list):
+        for x in value:
+            found.extend(_urls_from_value(x))
+    elif isinstance(value, dict):
+        for x in value.values():
+            found.extend(_urls_from_value(x))
+    return found
+
+
+def sample_media(item):
+    """Extract DMM/FANZA sample media without inventing or downloading URLs."""
+    images, movies, cover = [], [], []
+    for key, value in item.items():
+        key_n = re.sub(r"[^a-z0-9]", "", str(key).lower())
+        urls = _urls_from_value(value)
+        if "sampleimage" in key_n:
+            images.extend(urls)
+        elif "samplemovie" in key_n or "samplevideo" in key_n:
+            movies.extend(urls)
+        elif key_n == "imageurl":
+            cover.extend(urls)
+    def unique(values, limit=None):
+        out = []
+        for value in values:
+            if value and value not in out: out.append(value)
+            if limit and len(out) >= limit: break
+        return out
+    return {
+        "cover_image_url": unique(cover, 1)[0] if cover else "",
+        "sample_image_urls": unique(images, 12),
+        "sample_video_url": unique(movies, 1)[0] if movies else "",
+        "sample_available": bool(movies),
+    }
+
+
 def find_dvd_floor_ids():
     data = request_json(FLOOR_API_URL, {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "output": "json"})
     found = []
@@ -188,13 +227,10 @@ def discover_i_one_fallback(start, end, all_items):
         model_m = re.search(r"モデル名\s*[：:]\s*([^\n]{1,80}?)(?:\s+商品詳細|\s+ファイル内容|\s+発売日)", text)
         model_hint = model_m.group(1).strip() if model_m else ""; title_hint = re.sub(r"\s*\[[^\]]*\]", "", title_hint).strip()
 
-        # Prefer a canonical DMM/FANZA link if the official page exposes one.
         official_cids = official_dmm_cids(soup)
         matched = dmm_match_for_cids(official_cids, code, title_hint, model_hint)
         if matched: print(f"  i-one official DMM link matched code={code}")
 
-        # FANZA search HTML is not a reliable automation source. Instead query the
-        # affiliate API explicitly, including reserve stock for unreleased DVDs.
         if not matched:
             for keyword in (code, title_hint, model_hint):
                 if not keyword: continue
@@ -249,7 +285,8 @@ def discover():
     for maker, item in all_items.values():
         title = str(item.get("title") or "").strip(); release_date = str(item.get("date") or "")[:10]; code = str(item.get("maker_product") or item.get("product_id") or item.get("content_id") or "").strip(); jan = re.sub(r"\D", "", str(item.get("jancode") or item.get("jan") or ""))
         if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date): continue
-        products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan, "talent": talent_names(item), "source_url": item.get("URL") or "", "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "", "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
+        media = sample_media(item)
+        products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan, "talent": talent_names(item), "source_url": item.get("URL") or "", "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "", "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"], "sample_image_urls": media["sample_image_urls"], "sample_video_url": media["sample_video_url"], "sample_available": media["sample_available"], "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
     products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
 
 
