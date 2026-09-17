@@ -521,6 +521,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -543,6 +544,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -563,6 +565,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -585,6 +588,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -607,6 +611,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -629,6 +634,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -651,6 +657,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "upcoming",
     "tags": [
       "2026年",
@@ -1135,6 +1142,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1157,6 +1165,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1179,6 +1188,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1201,6 +1211,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1223,6 +1234,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1245,6 +1257,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1267,6 +1280,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1289,6 +1303,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1311,6 +1326,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1333,6 +1349,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1355,6 +1372,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1377,6 +1395,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1859,6 +1878,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
@@ -1881,28 +1901,7 @@
     "affiliate_url": "",
     "dmm_url": "",
     "affiliate_match_status": "unmatched",
-    "status": "released",
-    "tags": [
-      "2026年",
-      "2026-08",
-      "2026-08発売",
-      "ラインコミュニケーションズ / I-ONE"
-    ]
-  },
-  {
-    "maker": "ラインコミュニケーションズ / I-ONE",
-    "maker_id": "i-one",
-    "title": "【定額限定】I-ONE TV 小阪由佳",
-    "release_date": "2026-08-17",
-    "product_code": "LCDV-41430TS",
-    "jan": "",
-    "talent": [
-      "小阪由佳"
-    ],
-    "source_url": "https://i-one.tv/content/detail/?id=LCDV-41430Ts",
-    "affiliate_url": "",
-    "dmm_url": "",
-    "affiliate_match_status": "unmatched",
+    "affiliate_checked_at": "2026-09-17",
     "status": "released",
     "tags": [
       "2026年",
