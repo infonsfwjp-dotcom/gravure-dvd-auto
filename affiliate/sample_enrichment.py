@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import html
 import json
 import os
 import re
 import time
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import quote_plus, urljoin
 
 import requests
 
@@ -14,6 +16,7 @@ DATA = ROOT / "data/products.json"
 API_URL = "https://api.dmm.com/affiliate/v3/ItemList"
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
+TAKESHobo_SITE = "https://idol-gakuen.jp/"
 
 
 def urls(value):
@@ -93,9 +96,6 @@ def search(product, session):
         "output": "json",
     }
 
-    # Physical DVD records do not always expose sampleMovieURL. FANZA often
-    # exposes the preview on the corresponding digital/video item, so search
-    # both catalogs. cid is the documented ItemList content-id parameter.
     catalogs = [
         {"service": "mono", "floor": "dvd"},
         {"service": "digital", "floor": "videoa"},
@@ -133,8 +133,6 @@ def search(product, session):
     title_l = title.lower()
     talent_l = talent.lower()
 
-    # Prefer an exact code/cid hit, but among exact hits prefer an item that
-    # actually contains preview media.
     exact = []
     for item in candidates:
         blob = item_blob(item)
@@ -147,7 +145,6 @@ def search(product, session):
     if exact:
         return exact[0]
 
-    # Strong title + talent fallback, again preferring actual preview video.
     strong = []
     for item in candidates:
         blob = item_blob(item)
@@ -160,6 +157,89 @@ def search(product, session):
     return strong[0] if strong else None
 
 
+def _html_urls(value):
+    value = html.unescape(value or "").replace("\\/", "/")
+    if value.startswith("//"):
+        return "https:" + value
+    if value.startswith(("http://", "https://")):
+        return value
+    return ""
+
+
+def takeshobo_public_sample(product, session):
+    """Fallback for 竹書房's official Idol Gakuen site.
+
+    The official site exposes product pages with a native <video> element.
+    We only keep the public video/image URLs; media is not downloaded or
+    re-hosted by this project.
+    """
+    if product.get("maker_id") != "takeshobo":
+        return {}
+
+    title = str(product.get("title") or "").strip()
+    talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
+    code = str(product.get("product_code") or "").strip()
+    queries = [q for q in (code, talent, title) if q]
+    item_urls = []
+    seen = set()
+
+    for query in queries[:3]:
+        try:
+            search_url = urljoin(TAKESHobo_SITE, "?s=" + quote_plus(query))
+            response = session.get(search_url, timeout=15)
+            if response.status_code >= 400:
+                continue
+            links = re.findall(r'href=["\']([^"\']*/item/\d+/[^"\']*)["\']', response.text, re.I)
+            for link in links:
+                absolute = urljoin(search_url, html.unescape(link))
+                if absolute not in seen:
+                    seen.add(absolute)
+                    item_urls.append(absolute)
+        except Exception:
+            continue
+
+    title_l = re.sub(r"[^0-9a-zA-Zぁ-んァ-ン一-龥ー]", "", title).lower()
+    talent_l = re.sub(r"[^0-9a-zA-Zぁ-んァ-ン一-龥ー]", "", talent).lower()
+
+    for item_url in item_urls[:12]:
+        try:
+            response = session.get(item_url, timeout=15)
+            if response.status_code >= 400:
+                continue
+            source = html.unescape(response.text)
+            normalized = re.sub(r"[^0-9a-zA-Zぁ-んァ-ン一-龥ー]", "", source).lower()
+            if title_l and title_l not in normalized and talent_l and talent_l not in normalized:
+                continue
+
+            videos = []
+            for match in re.findall(r"<(?:video|source)[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']", source, re.I):
+                u = _html_urls(match)
+                if u:
+                    videos.append(u)
+            posters = []
+            for match in re.findall(r"<(?:video|source)[^>]+poster=[\"']([^\"']+)[\"']", source, re.I):
+                u = _html_urls(match)
+                if u:
+                    posters.append(u)
+            images = []
+            for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
+                u = _html_urls(match)
+                if u and "/wp-content/" in u:
+                    images.append(u)
+
+            videos = unique(videos, 1)
+            if videos:
+                return {
+                    "sample_video_url": videos[0],
+                    "sample_image_urls": unique(posters + images, 12),
+                    "sample_available": True,
+                    "sample_source_url": item_url,
+                }
+        except Exception:
+            continue
+    return {}
+
+
 def main():
     if not API_ID or not AFFILIATE_ID or not DATA.exists():
         return
@@ -168,6 +248,8 @@ def main():
     today = date.today()
     changed = 0
     checked = 0
+    public_checked = 0
+    public_changed = 0
     session = requests.Session()
     session.headers.update({"User-Agent": "gravure-dvd-auto/1.0"})
 
@@ -182,16 +264,17 @@ def main():
         if release < today - timedelta(days=60) or release > today + timedelta(days=120):
             continue
 
+        before = (
+            product.get("cover_image_url"),
+            tuple(product.get("sample_image_urls") or []),
+            product.get("sample_video_url"),
+            product.get("sample_available"),
+        )
+
         item = search(product, session)
         checked += 1
         if item:
             media = extract_media(item)
-            before = (
-                product.get("cover_image_url"),
-                tuple(product.get("sample_image_urls") or []),
-                product.get("sample_video_url"),
-                product.get("sample_available"),
-            )
             if media["cover_image_url"]:
                 product["cover_image_url"] = media["cover_image_url"]
             if media["sample_image_urls"]:
@@ -199,18 +282,34 @@ def main():
             if media["sample_video_url"]:
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
-            after = (
-                product.get("cover_image_url"),
-                tuple(product.get("sample_image_urls") or []),
-                product.get("sample_video_url"),
-                product.get("sample_available"),
-            )
-            if before != after:
-                changed += 1
+
+        # FANZA API can expose sample images while omitting sampleMovieURL.
+        # For 竹書房, the official Idol Gakuen site is a second public-source
+        # fallback and can expose the native sample video directly.
+        if not (product.get("sample_available") and product.get("sample_video_url")) and product.get("maker_id") == "takeshobo":
+            public_checked += 1
+            public = takeshobo_public_sample(product, session)
+            if public.get("sample_video_url"):
+                product["sample_video_url"] = public["sample_video_url"]
+                product["sample_available"] = True
+                if public.get("sample_image_urls"):
+                    product["sample_image_urls"] = public["sample_image_urls"]
+                if public.get("sample_source_url"):
+                    product["sample_source_url"] = public["sample_source_url"]
+                public_changed += 1
+
+        after = (
+            product.get("cover_image_url"),
+            tuple(product.get("sample_image_urls") or []),
+            product.get("sample_video_url"),
+            product.get("sample_available"),
+        )
+        if before != after:
+            changed += 1
         time.sleep(0.10)
 
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"sample enrichment checked={checked} changed={changed}")
+    print(f"sample enrichment checked={checked} changed={changed} public_takeshobo_checked={public_checked} public_takeshobo_changed={public_changed}")
 
 
 if __name__ == "__main__":
