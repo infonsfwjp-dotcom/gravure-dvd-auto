@@ -84,40 +84,46 @@ def search(product, session):
     cid_match = re.search(r"cid=([^/?&#]+)", dmm_url, re.I)
     cid = cid_match.group(1) if cid_match else ""
 
-    base = {
+    common = {
         "api_id": API_ID,
         "affiliate_id": AFFILIATE_ID,
         "site": "FANZA",
-        "service": "mono",
-        "floor": "dvd",
-        "hits": 20,
+        "hits": 100,
         "offset": 1,
         "output": "json",
     }
 
-    searches = []
+    # Physical DVD records do not always expose sampleMovieURL. FANZA often
+    # exposes the preview on the corresponding digital/video item, so search
+    # both catalogs. cid is the documented ItemList content-id parameter.
+    catalogs = [
+        {"service": "mono", "floor": "dvd"},
+        {"service": "digital", "floor": "videoa"},
+        {},
+    ]
+    terms = []
     if cid:
-        # FANZA/DMM ItemList uses cid as the content_id lookup parameter.
-        searches.append({**base, "cid": cid})
-        # Keep content_id as a compatibility fallback in case the API accepts it for a given endpoint/version.
-        searches.append({**base, "content_id": cid})
+        terms.append({"cid": cid})
     if code:
-        searches.append({**base, "keyword": code})
+        terms.append({"keyword": code})
     if title and talent:
-        searches.append({**base, "keyword": f"{title} {talent}"})
+        terms.append({"keyword": f"{title} {talent}"})
     elif title:
-        searches.append({**base, "keyword": title})
+        terms.append({"keyword": title})
 
     candidates = []
     seen = set()
-    for params in searches:
-        for item in api_search(params, session):
-            key = str(item.get("product_id") or item.get("content_id") or item.get("cid") or "")
-            if key and key in seen:
-                continue
-            if key:
-                seen.add(key)
-            candidates.append(item)
+    for catalog in catalogs:
+        for term in terms:
+            params = {**common, **catalog, **term}
+            for item in api_search(params, session):
+                key = str(item.get("product_id") or item.get("content_id") or item.get("cid") or "")
+                dedupe = (key, str(item.get("service_code") or catalog.get("service") or ""))
+                if key and dedupe in seen:
+                    continue
+                if key:
+                    seen.add(dedupe)
+                candidates.append(item)
 
     if not candidates:
         return None
@@ -127,19 +133,31 @@ def search(product, session):
     title_l = title.lower()
     talent_l = talent.lower()
 
+    # Prefer an exact code/cid hit, but among exact hits prefer an item that
+    # actually contains preview media.
+    exact = []
     for item in candidates:
         blob = item_blob(item)
-        if code_l and code_l in blob:
+        if (code_l and code_l in blob) or (cid_l and cid_l in blob):
+            exact.append(item)
+    for item in exact:
+        media = extract_media(item)
+        if media["sample_video_url"]:
             return item
-        if cid_l and cid_l in blob:
-            return item
+    if exact:
+        return exact[0]
 
+    # Strong title + talent fallback, again preferring actual preview video.
+    strong = []
     for item in candidates:
         blob = item_blob(item)
         if title_l and title_l in blob and (not talent_l or talent_l in blob):
+            strong.append(item)
+    for item in strong:
+        media = extract_media(item)
+        if media["sample_video_url"]:
             return item
-
-    return None
+    return strong[0] if strong else None
 
 
 def main():
@@ -176,9 +194,11 @@ def main():
             )
             if media["cover_image_url"]:
                 product["cover_image_url"] = media["cover_image_url"]
-            product["sample_image_urls"] = media["sample_image_urls"]
-            product["sample_video_url"] = media["sample_video_url"]
-            product["sample_available"] = media["sample_available"]
+            if media["sample_image_urls"]:
+                product["sample_image_urls"] = media["sample_image_urls"]
+            if media["sample_video_url"]:
+                product["sample_video_url"] = media["sample_video_url"]
+                product["sample_available"] = True
             after = (
                 product.get("cover_image_url"),
                 tuple(product.get("sample_image_urls") or []),
