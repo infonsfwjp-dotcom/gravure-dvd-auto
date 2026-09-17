@@ -47,27 +47,27 @@ def unique(values, limit=None):
 
 
 def extract_media(item):
-    cover = urls(item.get("imageURL") or {})
-    sample_images = urls(item.get("sampleImageURL") or {})
-
-    sample_movies = []
+    covers = urls(item.get("imageURL") or {})
+    images = urls(item.get("sampleImageURL") or {})
+    movies = []
     sample_movie = item.get("sampleMovieURL") or {}
     if isinstance(sample_movie, dict):
         for key in ("size_720_480", "size_644_414", "size_560_360", "size_476_306"):
-            sample_movies.extend(urls(sample_movie.get(key)))
-    sample_movies.extend(urls(sample_movie))
-
+            movies.extend(urls(sample_movie.get(key)))
+    movies.extend(urls(sample_movie))
     return {
-        "cover_image_url": unique(cover, 1)[0] if cover else "",
-        "sample_image_urls": unique(sample_images, 12),
-        "sample_video_url": unique(sample_movies, 1)[0] if sample_movies else "",
-        "sample_available": bool(sample_movies),
+        "cover_image_url": unique(covers, 1)[0] if covers else "",
+        "sample_image_urls": unique(images, 12),
+        "sample_video_url": unique(movies, 1)[0] if movies else "",
+        "sample_available": bool(movies),
     }
 
 
 def item_blob(item):
-    keys = ("maker_product", "product_id", "content_id", "cid", "title", "iteminfo")
-    return " ".join(str(item.get(k) or "") for k in keys).lower()
+    return " ".join(
+        str(item.get(k) or "")
+        for k in ("maker_product", "product_id", "content_id", "cid", "title", "iteminfo")
+    ).lower()
 
 
 def api_search(params, session):
@@ -80,13 +80,13 @@ def api_search(params, session):
         return []
 
 
-def search(product, session):
+def fanza_search(product, session):
     code = str(product.get("product_code") or "").strip()
     title = str(product.get("title") or "").strip()
     talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
-    dmm_url = str(product.get("dmm_url") or product.get("source_url") or "")
-    cid_match = re.search(r"cid=([^/?&#]+)", dmm_url, re.I)
-    cid = cid_match.group(1) if cid_match else ""
+    source = str(product.get("dmm_url") or product.get("source_url") or "")
+    match = re.search(r"cid=([^/?&#]+)", source, re.I)
+    cid = match.group(1) if match else ""
 
     common = {
         "api_id": API_ID,
@@ -96,7 +96,6 @@ def search(product, session):
         "offset": 1,
         "output": "json",
     }
-
     catalogs = [
         {"service": "mono", "floor": "dvd"},
         {"service": "digital", "floor": "videoa"},
@@ -112,12 +111,10 @@ def search(product, session):
     elif title:
         terms.append({"keyword": title})
 
-    candidates = []
-    seen = set()
+    candidates, seen = [], set()
     for catalog in catalogs:
         for term in terms:
-            params = {**common, **catalog, **term}
-            for item in api_search(params, session):
+            for item in api_search({**common, **catalog, **term}, session):
                 key = str(item.get("product_id") or item.get("content_id") or item.get("cid") or "")
                 dedupe = (key, str(item.get("service_code") or catalog.get("service") or ""))
                 if key and dedupe in seen:
@@ -129,36 +126,29 @@ def search(product, session):
     if not candidates:
         return None
 
-    code_l = code.lower()
-    cid_l = cid.lower()
-    title_l = title.lower()
-    talent_l = talent.lower()
-
-    exact = []
-    for item in candidates:
-        blob = item_blob(item)
-        if (code_l and code_l in blob) or (cid_l and cid_l in blob):
-            exact.append(item)
+    code_l, cid_l = code.lower(), cid.lower()
+    title_l, talent_l = title.lower(), talent.lower()
+    exact = [
+        item for item in candidates
+        if (code_l and code_l in item_blob(item)) or (cid_l and cid_l in item_blob(item))
+    ]
     for item in exact:
-        media = extract_media(item)
-        if media["sample_video_url"]:
+        if extract_media(item)["sample_video_url"]:
             return item
     if exact:
         return exact[0]
 
-    strong = []
-    for item in candidates:
-        blob = item_blob(item)
-        if title_l and title_l in blob and (not talent_l or talent_l in blob):
-            strong.append(item)
+    strong = [
+        item for item in candidates
+        if title_l and title_l in item_blob(item) and (not talent_l or talent_l in item_blob(item))
+    ]
     for item in strong:
-        media = extract_media(item)
-        if media["sample_video_url"]:
+        if extract_media(item)["sample_video_url"]:
             return item
     return strong[0] if strong else None
 
 
-def _html_urls(value, base=""):
+def _abs_url(value, base):
     value = html.unescape(value or "").replace("\\/", "/").strip()
     if not value:
         return ""
@@ -167,71 +157,54 @@ def _html_urls(value, base=""):
     return urljoin(base, value)
 
 
-def _public_html_media(source, base_url):
-    """Extract only publicly embedded preview media from an official page."""
+def public_page_media(source, base_url):
     source = html.unescape(source).replace("\\/", "/")
     videos = []
-    images = []
-
-    patterns = [
-        r"<(?:video|source)[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']",
-        r"(?:sampleMovieURL|sample_movie|sampleMovie)[^\"']*[\"']\s*:\s*[\"']([^\"']+)[\"']",
-        r"https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^\"'<> ]+",
-    ]
-    for pattern in patterns:
+    for pattern in (
+        r'<(?:video|source)[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
+        r'https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^"\'<> ]+',
+    ):
         for match in re.findall(pattern, source, re.I):
             value = match if isinstance(match, str) else match[0]
-            value = _html_urls(value, base_url)
+            value = _abs_url(value, base_url)
             if value:
                 videos.append(value)
 
+    images = []
     for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
-        value = _html_urls(match, base_url)
+        value = _abs_url(match, base_url)
         if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
             images.append(value)
-
-    for match in re.findall(r"<(?:video|source)[^>]+poster=[\"']([^\"']+)[\"']", source, re.I):
-        value = _html_urls(match, base_url)
-        if value:
-            images.append(value)
-
     return unique(videos, 3), unique(images, 12)
 
 
 def ione_public_sample(product, session):
-    """Fallback to the official I-ONE TV public product page.
-
-    I-ONE publishes free sample videos and sample images on its official
-    product pages. We only reference the publicly embedded media URL; the
-    project does not download or re-host the media.
-    """
     if product.get("maker_id") != "i-one":
         return {}
-
     code = str(product.get("product_code") or "").strip()
     title = str(product.get("title") or "").strip()
     talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
-    if not code and not title:
-        return {}
-
     candidates = []
     if code:
         candidates.append(f"{IONE_TV}content/detail/?id={quote_plus(code)}")
 
-    # Search the official I-ONE TV catalog only when a code-specific page
-    # cannot be used. This remains a first-party source and avoids guessing
-    # a product URL from third-party sites.
+    # Search only the official catalog as a fallback when the exact code page
+    # cannot be reached. A candidate still has to match title/talent.
     for query in (f"{title} {talent}".strip(), title):
-        if query:
-            try:
-                response = session.get(IONE_TV + "content/", params={"s": query}, timeout=15)
-                if response.status_code < 400:
-                    links = re.findall(r'href=["\']([^"\']*/content/detail/\?id=[^"\']+)["\']', response.text, re.I)
-                    for link in links[:10]:
-                        candidates.append(urljoin(IONE_TV, html.unescape(link)))
-            except Exception:
-                pass
+        if not query:
+            continue
+        try:
+            response = session.get(IONE_TV + "content/", params={"s": query}, timeout=15)
+            if response.status_code < 400:
+                candidates.extend(
+                    urljoin(IONE_TV, html.unescape(x))
+                    for x in re.findall(r'href=["\']([^"\']*/content/detail/\?id=[^"\']+)["\']', response.text, re.I)[:10]
+                )
+        except Exception:
+            pass
 
+    title_l = re.sub(r"\s+", "", title).lower()
+    talent_l = re.sub(r"\s+", "", talent).lower()
     seen = set()
     for page_url in candidates:
         if page_url in seen:
@@ -242,98 +215,95 @@ def ione_public_sample(product, session):
             if response.status_code >= 400:
                 continue
             source = response.text
-            normalized = re.sub(r"\s+", " ", html.unescape(source)).lower()
-            # Do not treat ordinary product pages as sample pages unless the
-            # official page actually advertises a free sample video.
+            normalized = re.sub(r"\s+", "", html.unescape(source)).lower()
+            if code and code.lower() not in normalized:
+                # Exact-code pages are preferred; do not accept an unrelated
+                # official page merely because the search engine matched it.
+                if title_l and title_l not in normalized:
+                    continue
+                if talent_l and talent_l not in normalized:
+                    continue
             if "無料サンプル動画" not in normalized and "サンプル動画" not in normalized:
                 continue
-
-            videos, images = _public_html_media(source, page_url)
-            if not videos:
-                continue
-            return {
-                "sample_video_url": videos[0],
-                "sample_image_urls": images,
-                "sample_available": True,
-                "sample_source_url": page_url,
-            }
+            videos, images = public_page_media(source, page_url)
+            if videos:
+                return {
+                    "sample_video_url": videos[0],
+                    "sample_image_urls": images,
+                    "sample_available": True,
+                    "sample_source_url": page_url,
+                }
         except Exception:
             continue
     return {}
 
 
 def takeshobo_public_sample(product, session):
-    """Fallback for 竹書房's official Idol Gakuen site.
-
-    The official site exposes product pages with a native <video> element.
-    We only keep the public video/image URLs; media is not downloaded or
-    re-hosted by this project.
-    """
     if product.get("maker_id") != "takeshobo":
         return {}
-
+    code = str(product.get("product_code") or "").strip().lower()
     title = str(product.get("title") or "").strip()
     talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
-    code = str(product.get("product_code") or "").strip()
     queries = [q for q in (code, talent, title) if q]
-    item_urls = []
+    candidates = []
     seen = set()
-
     for query in queries[:3]:
         try:
             search_url = urljoin(TAKESHobo_SITE, "?s=" + quote_plus(query))
             response = session.get(search_url, timeout=15)
             if response.status_code >= 400:
                 continue
-            links = re.findall(r'href=["\']([^"\']*/item/\d+/[^"\']*)["\']', response.text, re.I)
-            for link in links:
+            for link in re.findall(r'href=["\']([^"\']*/item/\d+/[^"\']*)["\']', response.text, re.I):
                 absolute = urljoin(search_url, html.unescape(link))
                 if absolute not in seen:
                     seen.add(absolute)
-                    item_urls.append(absolute)
+                    candidates.append(absolute)
         except Exception:
             continue
 
-    title_l = re.sub(r"[^0-9a-zA-Zぁ-んァ-ン一-龥ー]", "", title).lower()
-    talent_l = re.sub(r"[^0-9a-zA-Zぁ-んァ-ン一-龥ー]", "", talent).lower()
-
-    for item_url in item_urls[:12]:
+    title_l = re.sub(r"\s+", "", title).lower()
+    talent_l = re.sub(r"\s+", "", talent).lower()
+    for page_url in candidates[:12]:
         try:
-            response = session.get(item_url, timeout=15)
+            response = session.get(page_url, timeout=15)
             if response.status_code >= 400:
                 continue
             source = html.unescape(response.text)
-            normalized = re.sub(r"[^0-9a-zA-Zぁ-んァ-ン一-龥ー]", "", source).lower()
-            if title_l and title_l not in normalized and talent_l and talent_l not in normalized:
-                continue
-
-            videos = []
-            for match in re.findall(r"<(?:video|source)[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']", source, re.I):
-                u = _html_urls(match)
-                if u:
-                    videos.append(u)
-            posters = []
-            for match in re.findall(r"<(?:video|source)[^>]+poster=[\"']([^\"']+)[\"']", source, re.I):
-                u = _html_urls(match)
-                if u:
-                    posters.append(u)
-            images = []
-            for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
-                u = _html_urls(match)
-                if u and "/wp-content/" in u:
-                    images.append(u)
-
-            videos = unique(videos, 1)
+            normalized = re.sub(r"\s+", "", source).lower()
+            # The previous implementation accepted a page when only one of
+            # title/talent matched, which caused unrelated videos to attach.
+            # Require the exact product code, or both title and talent.
+            if code:
+                if code not in normalized:
+                    continue
+            else:
+                if not title_l or title_l not in normalized:
+                    continue
+                if talent_l and talent_l not in normalized:
+                    continue
+            videos, images = public_page_media(source, page_url)
             if videos:
                 return {
                     "sample_video_url": videos[0],
-                    "sample_image_urls": unique(posters + images, 12),
+                    "sample_image_urls": images,
                     "sample_available": True,
-                    "sample_source_url": item_url,
+                    "sample_source_url": page_url,
                 }
         except Exception:
             continue
     return {}
+
+
+def clear_stale_takeshobo_sample(product):
+    """Remove media written by the old unsafe official-site matcher."""
+    if product.get("maker_id") != "takeshobo":
+        return
+    source = str(product.get("sample_source_url") or "")
+    if source.startswith(TAKESHobo_SITE):
+        product["sample_image_urls"] = []
+        product["sample_video_url"] = ""
+        product["sample_available"] = False
+        product.pop("sample_source_url", None)
 
 
 def main():
@@ -342,21 +312,18 @@ def main():
 
     products = json.loads(DATA.read_text(encoding="utf-8"))
     today = date.today()
-    changed = 0
-    checked = 0
-    public_checked = 0
-    public_changed = 0
-    takeshobo_checked = 0
-    takeshobo_changed = 0
+    changed = checked = 0
+    ione_checked = ione_changed = 0
+    takeshobo_checked = takeshobo_changed = 0
     session = requests.Session()
     session.headers.update({"User-Agent": "gravure-dvd-auto/1.0"})
 
     for product in products:
+        clear_stale_takeshobo_sample(product)
         if product.get("sample_available") and product.get("sample_video_url"):
             continue
-        release_raw = str(product.get("release_date") or "")
         try:
-            release = date.fromisoformat(release_raw)
+            release = date.fromisoformat(str(product.get("release_date") or ""))
         except ValueError:
             continue
         if release < today - timedelta(days=60) or release > today + timedelta(days=120):
@@ -369,7 +336,7 @@ def main():
             product.get("sample_available"),
         )
 
-        item = search(product, session)
+        item = fanza_search(product, session)
         checked += 1
         if item:
             media = extract_media(item)
@@ -381,28 +348,26 @@ def main():
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
 
-        if not (product.get("sample_available") and product.get("sample_video_url")) and product.get("maker_id") == "i-one":
-            public_checked += 1
-            public = ione_public_sample(product, session)
-            if public.get("sample_video_url"):
-                product["sample_video_url"] = public["sample_video_url"]
+        if not product.get("sample_video_url") and product.get("maker_id") == "i-one":
+            ione_checked += 1
+            media = ione_public_sample(product, session)
+            if media.get("sample_video_url"):
+                product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
-                if public.get("sample_image_urls"):
-                    product["sample_image_urls"] = public["sample_image_urls"]
-                if public.get("sample_source_url"):
-                    product["sample_source_url"] = public["sample_source_url"]
-                public_changed += 1
+                if media.get("sample_image_urls"):
+                    product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_source_url"] = media.get("sample_source_url", "")
+                ione_changed += 1
 
-        if not (product.get("sample_available") and product.get("sample_video_url")) and product.get("maker_id") == "takeshobo":
+        if not product.get("sample_video_url") and product.get("maker_id") == "takeshobo":
             takeshobo_checked += 1
-            public = takeshobo_public_sample(product, session)
-            if public.get("sample_video_url"):
-                product["sample_video_url"] = public["sample_video_url"]
+            media = takeshobo_public_sample(product, session)
+            if media.get("sample_video_url"):
+                product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
-                if public.get("sample_image_urls"):
-                    product["sample_image_urls"] = public["sample_image_urls"]
-                if public.get("sample_source_url"):
-                    product["sample_source_url"] = public["sample_source_url"]
+                if media.get("sample_image_urls"):
+                    product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_source_url"] = media.get("sample_source_url", "")
                 takeshobo_changed += 1
 
         after = (
@@ -417,9 +382,8 @@ def main():
 
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
-        "sample enrichment "
-        f"checked={checked} changed={changed} "
-        f"public_ione_checked={public_checked} public_ione_changed={public_changed} "
+        f"sample enrichment checked={checked} changed={changed} "
+        f"public_ione_checked={ione_checked} public_ione_changed={ione_changed} "
         f"public_takeshobo_checked={takeshobo_checked} public_takeshobo_changed={takeshobo_changed}"
     )
 
