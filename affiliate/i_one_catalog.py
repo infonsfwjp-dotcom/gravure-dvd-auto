@@ -54,6 +54,44 @@ def maker_match(item):
     return any(x in raw for x in (norm("ラインコミュニケーションズ"), norm("I-ONE"), norm("アイドルワン")))
 
 
+def _urls_from_value(value):
+    found = []
+    if isinstance(value, str) and value.startswith(("http://", "https://")):
+        return [value]
+    if isinstance(value, list):
+        for x in value:
+            found.extend(_urls_from_value(x))
+    elif isinstance(value, dict):
+        for x in value.values():
+            found.extend(_urls_from_value(x))
+    return found
+
+
+def sample_media(item):
+    images, movies, cover = [], [], []
+    for key, value in item.items():
+        key_n = re.sub(r"[^a-z0-9]", "", str(key).lower())
+        urls = _urls_from_value(value)
+        if "sampleimage" in key_n:
+            images.extend(urls)
+        elif "samplemovie" in key_n or "samplevideo" in key_n:
+            movies.extend(urls)
+        elif key_n == "imageurl":
+            cover.extend(urls)
+    def unique(values, limit=None):
+        out = []
+        for value in values:
+            if value and value not in out: out.append(value)
+            if limit and len(out) >= limit: break
+        return out
+    return {
+        "cover_image_url": unique(cover, 1)[0] if cover else "",
+        "sample_image_urls": unique(images, 12),
+        "sample_video_url": unique(movies, 1)[0] if movies else "",
+        "sample_available": bool(movies),
+    }
+
+
 def match_item(items, code, title, model):
     code_n = norm(code)
     title_n = norm(title)
@@ -62,8 +100,6 @@ def match_item(items, code, title, model):
         item_code = item_code_blob(item)
         if code_n and code_n in item_code:
             return item
-    # Only accept title/model matches when the returned item itself identifies
-    # the I-ONE/Line Communications maker. This prevents false positives.
     for item in items:
         item_title = item_title_norm(item)
         if maker_match(item):
@@ -89,10 +125,6 @@ def dmm_match(code, title, model, release):
         "offset": 1,
         "output": "json",
     }
-
-    # Prefer exact product-code search first, then title/model fallbacks.
-    # Date/stock filters are intentionally omitted because FANZA's index can
-    # lag the official I-ONE catalog for upcoming reservations.
     searches = [
         (str(code or "").strip(), True),
         (str(title or "").strip(), False),
@@ -112,7 +144,6 @@ def dmm_match(code, title, model, release):
         if matched:
             print(f"i-one FANZA API match code={code} keyword={keyword}")
             return matched
-
     return None
 
 
@@ -124,9 +155,6 @@ def should_retry(product, today):
         checked_date = date.fromisoformat(checked)
     except ValueError:
         return True
-    # Once a release is within 14 days, check every run. Before that, retry
-    # unmatched products every 3 days to avoid spending Actions time on the
-    # same FANZA API misses while still catching newly indexed reservations.
     release_raw = str(product.get("release_date") or "")
     try:
         release = date.fromisoformat(release_raw)
@@ -173,6 +201,8 @@ def apply_match(product, matched, fallback_title, code, model):
     product["dmm_url"] = dmm_url
     product["affiliate_match_status"] = "matched" if affiliate_url else "unmatched"
     product["affiliate_checked_at"] = date.today().isoformat()
+    media = sample_media(matched)
+    product.update(media)
     if model:
         product["talent"] = [model]
     return bool(affiliate_url)
@@ -182,19 +212,13 @@ def main():
     if not DATA.exists():
         return
     products = json.loads(DATA.read_text(encoding="utf-8"))
-    existing_by_code = {
-        norm(p.get("product_code")): p
-        for p in products
-        if p.get("product_code")
-    }
+    existing_by_code = {norm(p.get("product_code")): p for p in products if p.get("product_code")}
     today = date.today()
     start = today - timedelta(days=30)
     end = today + timedelta(days=180)
     base = "https://i-one.tv/content/?maker=line-communications&page={}"
     seen = set()
     details = []
-    # The catalogue is newest-first. Six pages is enough for the configured
-    # date window and avoids spending most of the Actions budget on old pages.
     for page in range(1, 7):
         try:
             r = SESSION.get(base.format(page), timeout=12)
@@ -251,6 +275,7 @@ def main():
             dmm_url = str(matched.get("URL") or "")
             talent = [model] if model else []
             match_status = "matched" if affiliate_url else "unmatched"
+            media = sample_media(matched)
         else:
             item_title = title or (f"{model} {code}" if model else code)
             product_code = code
@@ -258,6 +283,7 @@ def main():
             dmm_url = ""
             talent = [model] if model else []
             match_status = "unmatched"
+            media = {"cover_image_url": "", "sample_image_urls": [], "sample_video_url": "", "sample_available": False}
         product = {
             "maker": "ラインコミュニケーションズ / I-ONE",
             "maker_id": "i-one",
@@ -272,6 +298,7 @@ def main():
             "affiliate_match_status": match_status,
             "affiliate_checked_at": today.isoformat(),
             "status": "upcoming" if release >= today else "released",
+            **media,
             "tags": [f"{release.year}年", release.strftime("%Y-%m"), f"{release.strftime('%Y-%m')}発売", "ラインコミュニケーションズ / I-ONE"],
         }
         products.append(product)
@@ -284,5 +311,4 @@ def main():
     print(f"products total={len(products)}")
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
