@@ -17,6 +17,7 @@ API_URL = "https://api.dmm.com/affiliate/v3/ItemList"
 API_ID = os.getenv("DMM_API_ID", "")
 AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
 TAKESHobo_SITE = "https://idol-gakuen.jp/"
+IONE_TV = "https://i-one.tv/"
 
 
 def urls(value):
@@ -157,13 +158,108 @@ def search(product, session):
     return strong[0] if strong else None
 
 
-def _html_urls(value):
-    value = html.unescape(value or "").replace("\\/", "/")
+def _html_urls(value, base=""):
+    value = html.unescape(value or "").replace("\\/", "/").strip()
+    if not value:
+        return ""
     if value.startswith("//"):
         return "https:" + value
-    if value.startswith(("http://", "https://")):
-        return value
-    return ""
+    return urljoin(base, value)
+
+
+def _public_html_media(source, base_url):
+    """Extract only publicly embedded preview media from an official page."""
+    source = html.unescape(source).replace("\\/", "/")
+    videos = []
+    images = []
+
+    patterns = [
+        r"<(?:video|source)[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']",
+        r"(?:sampleMovieURL|sample_movie|sampleMovie)[^\"']*[\"']\s*:\s*[\"']([^\"']+)[\"']",
+        r"https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^\"'<> ]+",
+    ]
+    for pattern in patterns:
+        for match in re.findall(pattern, source, re.I):
+            value = match if isinstance(match, str) else match[0]
+            value = _html_urls(value, base_url)
+            if value:
+                videos.append(value)
+
+    for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
+        value = _html_urls(match, base_url)
+        if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
+            images.append(value)
+
+    for match in re.findall(r"<(?:video|source)[^>]+poster=[\"']([^\"']+)[\"']", source, re.I):
+        value = _html_urls(match, base_url)
+        if value:
+            images.append(value)
+
+    return unique(videos, 3), unique(images, 12)
+
+
+def ione_public_sample(product, session):
+    """Fallback to the official I-ONE TV public product page.
+
+    I-ONE publishes free sample videos and sample images on its official
+    product pages. We only reference the publicly embedded media URL; the
+    project does not download or re-host the media.
+    """
+    if product.get("maker_id") != "i-one":
+        return {}
+
+    code = str(product.get("product_code") or "").strip()
+    title = str(product.get("title") or "").strip()
+    talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
+    if not code and not title:
+        return {}
+
+    candidates = []
+    if code:
+        candidates.append(f"{IONE_TV}content/detail/?id={quote_plus(code)}")
+
+    # Search the official I-ONE TV catalog only when a code-specific page
+    # cannot be used. This remains a first-party source and avoids guessing
+    # a product URL from third-party sites.
+    for query in (f"{title} {talent}".strip(), title):
+        if query:
+            try:
+                response = session.get(IONE_TV + "content/", params={"s": query}, timeout=15)
+                if response.status_code < 400:
+                    links = re.findall(r'href=["\']([^"\']*/content/detail/\?id=[^"\']+)["\']', response.text, re.I)
+                    for link in links[:10]:
+                        candidates.append(urljoin(IONE_TV, html.unescape(link)))
+            except Exception:
+                pass
+
+    seen = set()
+    for page_url in candidates:
+        if page_url in seen:
+            continue
+        seen.add(page_url)
+        try:
+            response = session.get(page_url, timeout=15)
+            if response.status_code >= 400:
+                continue
+            source = response.text
+            normalized = re.sub(r"\s+", " ", html.unescape(source)).lower()
+            # Do not treat ordinary product pages as sample pages unless the
+            # official page actually advertises a free sample video.
+            if "無料サンプル動画" not in normalized and "サンプル動画" not in normalized:
+                continue
+
+            videos, images = _public_html_media(source, page_url)
+            if not videos:
+                continue
+            return {
+                "sample_video_url": videos[0],
+                "sample_image_urls": images,
+                "sample_available": True,
+                "sample_source_url": page_url,
+            }
+        except Exception:
+            continue
+    return {}
 
 
 def takeshobo_public_sample(product, session):
@@ -250,6 +346,8 @@ def main():
     checked = 0
     public_checked = 0
     public_changed = 0
+    takeshobo_checked = 0
+    takeshobo_changed = 0
     session = requests.Session()
     session.headers.update({"User-Agent": "gravure-dvd-auto/1.0"})
 
@@ -283,12 +381,9 @@ def main():
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
 
-        # FANZA API can expose sample images while omitting sampleMovieURL.
-        # For 竹書房, the official Idol Gakuen site is a second public-source
-        # fallback and can expose the native sample video directly.
-        if not (product.get("sample_available") and product.get("sample_video_url")) and product.get("maker_id") == "takeshobo":
+        if not (product.get("sample_available") and product.get("sample_video_url")) and product.get("maker_id") == "i-one":
             public_checked += 1
-            public = takeshobo_public_sample(product, session)
+            public = ione_public_sample(product, session)
             if public.get("sample_video_url"):
                 product["sample_video_url"] = public["sample_video_url"]
                 product["sample_available"] = True
@@ -297,6 +392,18 @@ def main():
                 if public.get("sample_source_url"):
                     product["sample_source_url"] = public["sample_source_url"]
                 public_changed += 1
+
+        if not (product.get("sample_available") and product.get("sample_video_url")) and product.get("maker_id") == "takeshobo":
+            takeshobo_checked += 1
+            public = takeshobo_public_sample(product, session)
+            if public.get("sample_video_url"):
+                product["sample_video_url"] = public["sample_video_url"]
+                product["sample_available"] = True
+                if public.get("sample_image_urls"):
+                    product["sample_image_urls"] = public["sample_image_urls"]
+                if public.get("sample_source_url"):
+                    product["sample_source_url"] = public["sample_source_url"]
+                takeshobo_changed += 1
 
         after = (
             product.get("cover_image_url"),
@@ -309,7 +416,12 @@ def main():
         time.sleep(0.10)
 
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"sample enrichment checked={checked} changed={changed} public_takeshobo_checked={public_checked} public_takeshobo_changed={public_changed}")
+    print(
+        "sample enrichment "
+        f"checked={checked} changed={changed} "
+        f"public_ione_checked={public_checked} public_ione_changed={public_changed} "
+        f"public_takeshobo_checked={takeshobo_checked} public_takeshobo_changed={takeshobo_changed}"
+    )
 
 
 if __name__ == "__main__":
