@@ -31,6 +31,8 @@ jobs:
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
           DMM_SITE: FANZA
         run: python -m affiliate.i_one_catalog
+      - name: Remove duplicate limited cheki variants
+        run: python scripts/dedupe_limited_variants.py
       - name: Generate static site
         env:
           SITE_URL: ${{ vars.SITE_URL }}
