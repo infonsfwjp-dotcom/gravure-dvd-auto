@@ -97,7 +97,9 @@ def search(product, session):
 
     searches = []
     if cid:
-        # ItemList documents this lookup as content_id rather than cid.
+        # FANZA/DMM ItemList uses cid as the content_id lookup parameter.
+        searches.append({**base, "cid": cid})
+        # Keep content_id as a compatibility fallback in case the API accepts it for a given endpoint/version.
         searches.append({**base, "content_id": cid})
     if code:
         searches.append({**base, "keyword": code})
