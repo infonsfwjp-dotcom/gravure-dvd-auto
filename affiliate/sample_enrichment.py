@@ -290,17 +290,23 @@ def smashtv_public_sample(product, session):
         except Exception:
             pass
     if not candidates:
-        for page in range(1, 37):
-            url = "https://smashtv.jp/works/" if page == 1 else f"https://smashtv.jp/works/page/{page}/"
-            try:
-                response = session.get(url, timeout=15)
-                if response.status_code >= 400:
+        for base_path, page_count in (("/works/", 36), ("/movie/", 23)):
+            for page in range(1, page_count + 1):
+                url = f"https://smashtv.jp{base_path}" if page == 1 else f"https://smashtv.jp{base_path}page/{page}/"
+                try:
+                    response = session.get(url, timeout=15)
+                    if response.status_code >= 400:
+                        continue
+                    source = html.unescape(response.text)
+                    normalized_page = re.sub(r"\\s+", "", source)
+                    if title.replace(" ", "") not in normalized_page and talent.replace(" ", "") not in normalized_page:
+                        continue
+                    for link in re.findall(r'href=["\\']([^"\\']+)["\\']', source, re.I):
+                        absolute = urljoin(url, link)
+                        if base_path in absolute and absolute.rstrip("/") != f"https://smashtv.jp{base_path.rstrip('/')}":
+                            candidates.append(absolute)
+                except Exception:
                     continue
-                if title.replace(" ", "") not in re.sub(r"\s+", "", html.unescape(response.text)):
-                    continue
-                candidates.extend(urljoin(url, html.unescape(x)) for x in re.findall(r'href=["\\\']([^"\\\']+)["\\\']', response.text, re.I) if "/works/" in x)
-            except Exception:
-                continue
     title_l = re.sub(r"\s+", "", title).lower()
     talent_l = re.sub(r"\s+", "", talent).lower()
     for page_url in unique(candidates, 20):
