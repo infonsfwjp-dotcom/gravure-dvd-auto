@@ -47,21 +47,41 @@ def unique(values, limit=None):
 
 
 def extract_media(item):
-    covers = urls(item.get("imageURL") or {})
-    images = urls(item.get("sampleImageURL") or {})
+    image_data = item.get("imageURL") or {}
+    sample_data = item.get("sampleImageURL") or {}
+
+    # Prefer the largest FANZA/DMM image variants. The API can expose both
+    # sample_s and sample_l; walking the dict recursively can otherwise put
+    # the small thumbnails first and make the mobile gallery look blurry.
+    covers = []
+    if isinstance(image_data, dict):
+        for key in ("large", "list", "small"):
+            covers.extend(urls(image_data.get(key)))
+    covers.extend(urls(image_data))
+
+    images = []
+    if isinstance(sample_data, dict):
+        for key in ("sample_l", "sample_s"):
+            value = sample_data.get(key)
+            if isinstance(value, dict):
+                images.extend(urls(value.get("image")))
+            else:
+                images.extend(urls(value))
+    images.extend(urls(sample_data))
+
     movies = []
     sample_movie = item.get("sampleMovieURL") or {}
     if isinstance(sample_movie, dict):
         for key in ("size_720_480", "size_644_414", "size_560_360", "size_476_306"):
             movies.extend(urls(sample_movie.get(key)))
     movies.extend(urls(sample_movie))
+
     return {
         "cover_image_url": unique(covers, 1)[0] if covers else "",
         "sample_image_urls": unique(images, 12),
         "sample_video_url": unique(movies, 1)[0] if movies else "",
         "sample_available": bool(movies),
     }
-
 
 def item_blob(item):
     return " ".join(
