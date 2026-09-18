@@ -3,6 +3,7 @@ import html, json, os, re, shutil, hashlib
 from pathlib import Path
 from collections import defaultdict
 
+# Media is mirrored during build so DMM/FANZA image hotlink failures do not break product pages.
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data/products.json"
 DIST = ROOT / "dist"
