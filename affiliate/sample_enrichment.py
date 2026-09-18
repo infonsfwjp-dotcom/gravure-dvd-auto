@@ -269,6 +269,74 @@ def ione_public_sample(product, session):
     return {}
 
 
+def smashtv_public_sample(product, session):
+    """Find official SmashTV sample media for Spice Visual products."""
+    if product.get("maker_id") != "spice_visual":
+        return {}
+    title = str(product.get("title") or "").strip()
+    talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
+    if not title:
+        return {}
+    queries = [title]
+    if talent:
+        queries.append(f"{title} {talent}")
+    candidates = []
+    seen = set()
+    for query in queries:
+        try:
+            response = session.get("https://smashtv.jp/", params={"s": query}, timeout=15)
+            if response.status_code < 400:
+                candidates.extend(urljoin("https://smashtv.jp/", html.unescape(x)) for x in re.findall(r'href=["\\\']([^"\\\']+)["\\\']', response.text, re.I) if "/works/" in x)
+        except Exception:
+            pass
+    if not candidates:
+        for page in range(1, 37):
+            url = "https://smashtv.jp/works/" if page == 1 else f"https://smashtv.jp/works/page/{page}/"
+            try:
+                response = session.get(url, timeout=15)
+                if response.status_code >= 400:
+                    continue
+                if title.replace(" ", "") not in re.sub(r"\s+", "", html.unescape(response.text)):
+                    continue
+                candidates.extend(urljoin(url, html.unescape(x)) for x in re.findall(r'href=["\\\']([^"\\\']+)["\\\']', response.text, re.I) if "/works/" in x)
+            except Exception:
+                continue
+    title_l = re.sub(r"\s+", "", title).lower()
+    talent_l = re.sub(r"\s+", "", talent).lower()
+    for page_url in unique(candidates, 20):
+        if page_url in seen or page_url.rstrip("/") == "https://smashtv.jp/works":
+            continue
+        seen.add(page_url)
+        try:
+            response = session.get(page_url, timeout=15)
+            if response.status_code >= 400:
+                continue
+            source = html.unescape(response.text)
+            normalized = re.sub(r"\s+", "", source).lower()
+            if title_l and title_l not in normalized:
+                continue
+            if talent_l and talent_l not in normalized:
+                continue
+            videos, images = public_page_media(source, page_url)
+            if not videos:
+                for link in re.findall(r'href=["\\\']([^"\\\']+)["\\\']', source, re.I):
+                    absolute = _abs_url(link, page_url)
+                    if "smashtv.jp" in absolute and ("sample" in absolute.lower() or "movie" in absolute.lower()):
+                        try:
+                            sub = session.get(absolute, timeout=15)
+                            if sub.status_code < 400:
+                                v2, i2 = public_page_media(html.unescape(sub.text), absolute)
+                                videos.extend(v2); images.extend(i2)
+                                if videos:
+                                    break
+                        except Exception:
+                            continue
+            if videos:
+                return {"sample_video_url": videos[0], "sample_image_urls": unique(images, 12), "sample_available": True, "sample_source_url": page_url}
+        except Exception:
+            continue
+    return {}
+
 def takeshobo_public_sample(product, session):
     if product.get("maker_id") != "takeshobo":
         return {}
@@ -389,6 +457,15 @@ def main():
                     product["sample_image_urls"] = media["sample_image_urls"]
                 product["sample_source_url"] = media.get("sample_source_url", "")
                 ione_changed += 1
+
+        if not product.get("sample_video_url") and product.get("maker_id") == "spice_visual":
+            media = smashtv_public_sample(product, session)
+            if media.get("sample_video_url"):
+                product["sample_video_url"] = media["sample_video_url"]
+                product["sample_available"] = True
+                if media.get("sample_image_urls"):
+                    product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_source_url"] = media.get("sample_source_url", "")
 
         if not product.get("sample_video_url") and product.get("maker_id") == "takeshobo":
             takeshobo_checked += 1
