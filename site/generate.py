@@ -3,7 +3,8 @@ import html, json, os, re, shutil, hashlib
 from pathlib import Path
 from collections import defaultdict
 
-# Media is mirrored during build so DMM/FANZA image hotlink failures do not break product pages.\nBUILD_MARKER = "media-refresh-2026-09-18"
+# Media is mirrored during build so DMM/FANZA image hotlink failures do not break product pages.
+BUILD_MARKER = "media-refresh-2026-09-18"
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data/products.json"
 DIST = ROOT / "dist"
