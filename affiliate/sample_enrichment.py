@@ -160,10 +160,15 @@ def _abs_url(value, base):
 def public_page_media(source, base_url):
     source = html.unescape(source).replace("\\/", "/")
     videos = []
-    for pattern in (
+
+    # I-ONE may place the sample MP4 URL in inline JavaScript rather than a
+    # literal <video>/<source> element. Capture both forms.
+    patterns = (
         r'<(?:video|source)[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
         r'https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^"\'<> ]+',
-    ):
+        r'https?://[^"\'<> ]+\.(?:mp4|m3u8)(?:\?[^"\'<> ]*)?',
+    )
+    for pattern in patterns:
         for match in re.findall(pattern, source, re.I):
             value = match if isinstance(match, str) else match[0]
             value = _abs_url(value, base_url)
@@ -175,8 +180,14 @@ def public_page_media(source, base_url):
         value = _abs_url(match, base_url)
         if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
             images.append(value)
-    return unique(videos, 3), unique(images, 12)
 
+    # Some pages expose image URLs only inside JSON/JS data.
+    for match in re.findall(r'https?://[^"\'<> ]+\.(?:jpe?g|png|webp)(?:\?[^"\'<> ]*)?', source, re.I):
+        value = _abs_url(match, base_url)
+        if value:
+            images.append(value)
+
+    return unique(videos, 3), unique(images, 12)
 
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
