@@ -1,11 +1,12 @@
 from __future__ import annotations
-import html, json, os, re, shutil
+import html, json, os, re, shutil, hashlib
 from pathlib import Path
 from collections import defaultdict
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data/products.json"
 DIST = ROOT / "dist"
+MEDIA = DIST / "media"
 SITE_URL = os.getenv("SITE_URL", "").rstrip("/")
 
 
@@ -27,6 +28,40 @@ def product_path(p):
 
 def url(path):
     return f"{SITE_URL}/{path.lstrip('/')}" if SITE_URL else "/" + path.lstrip("/")
+
+
+def local_media(src):
+    """Download remote media during the build so the public site does not depend on DMM hotlinking."""
+    src = str(src or "")
+    if not src.startswith(("http://", "https://")):
+        return ""
+    ext = Path(src.split("?", 1)[0]).suffix.lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+        ext = ".jpg"
+    name = hashlib.sha256(src.encode("utf-8")).hexdigest()[:24] + ext
+    path = MEDIA / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and path.stat().st_size > 1024:
+        return "/media/" + name
+    try:
+        import requests
+        r = requests.get(
+            src,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; gravure-dvd-auto/1.0)",
+                "Referer": "https://www.dmm.co.jp/",
+            },
+            timeout=20,
+        )
+        content_type = (r.headers.get("content-type") or "").lower()
+        if r.ok and (content_type.startswith("image/") or ext in {".jpg", ".jpeg", ".png", ".webp", ".gif"}) and len(r.content) > 1024:
+            path.write_bytes(r.content)
+            return "/media/" + name
+    except Exception:
+        pass
+    return ""
+
+
 
 
 def page(title, body, canonical_path="/", description="グラビアDVDの新発売情報を月別・メーカー別に自動更新"):
@@ -70,8 +105,10 @@ def product_page(p):
     release = str(p.get("release_date") or "")
     source = str(p.get("source_url") or "")
     buy = str(p.get("affiliate_url") or "")
-    cover = str(p.get("cover_image_url") or "")
-    sample_images = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:12]
+    cover_remote = str(p.get("cover_image_url") or "")
+    cover = local_media(cover_remote) or cover_remote
+    sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:12]
+    sample_images = [local_media(x) or x for x in sample_images_remote]
     sample_video = str(p.get("sample_video_url") or "")
     has_sample = bool(p.get("sample_available") and sample_video)
 
