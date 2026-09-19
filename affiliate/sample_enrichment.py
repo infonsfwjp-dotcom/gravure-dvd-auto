@@ -282,13 +282,39 @@ def smashtv_public_sample(product, session):
         queries.append(f"{title} {talent}")
     candidates = []
     seen = set()
+
+    # SmashTV is WordPress-backed. Its public REST search endpoint is more
+    # reliable than crawling all 36 work pages and can surface newly published
+    # work pages before search-engine indexes catch up.
+    for query in queries:
+        try:
+            response = session.get(
+                "https://smashtv.jp/wp-json/wp/v2/search",
+                params={"search": query, "per_page": 20},
+                timeout=15,
+            )
+            if response.status_code < 400:
+                for result in response.json() or []:
+                    value = str(result.get("url") or "").strip()
+                    if "/works/" in value and value not in seen:
+                        seen.add(value)
+                        candidates.append(value)
+        except Exception:
+            pass
+
+    # Also try the site's normal search page as a fallback.
     for query in queries:
         try:
             response = session.get("https://smashtv.jp/", params={"s": query}, timeout=15)
             if response.status_code < 400:
-                candidates.extend(urljoin("https://smashtv.jp/", html.unescape(x)) for x in re.findall(r"href=['\"]([^'\"]+)['\"]", response.text, re.I) if "/works/" in x)
+                for value in re.findall(r"href=['\"]([^'\"]+)['\"]", response.text, re.I):
+                    absolute = urljoin("https://smashtv.jp/", html.unescape(value))
+                    if "/works/" in absolute and absolute not in seen:
+                        seen.add(absolute)
+                        candidates.append(absolute)
         except Exception:
             pass
+
     if not candidates:
         for base_path, page_count in (("/works/", 36), ("/movie/", 23)):
             for page in range(1, page_count + 1):
