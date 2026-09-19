@@ -275,11 +275,18 @@ def smashtv_public_sample(product, session):
         return {}
     title = str(product.get("title") or "").strip()
     talent = " ".join(str(x) for x in (product.get("talent") or []) if x)
-    if not title:
+    # Some FANZA records encode the performer after a slash in the title
+    # (e.g. 「恋色どみねーと！/三好双葉」) while the talent field is empty.
+    # SmashTV publishes the same work as separate title/performer text.
+    work_title = title.split("/", 1)[0].strip() if "/" in title else title
+    title_talent = title.split("/", 1)[1].strip() if "/" in title else ""
+    if not talent and title_talent:
+        talent = title_talent
+    if not work_title:
         return {}
-    queries = [title]
+    queries = [work_title]
     if talent:
-        queries.append(f"{title} {talent}")
+        queries.append(f"{work_title} {talent}")
     candidates = []
     seen = set()
 
@@ -317,7 +324,7 @@ def smashtv_public_sample(product, session):
 
     # WordPress search can return stale/unrelated entries. Only keep exact
     # title/talent candidates; otherwise crawl the newest listing pages.
-    title_key = re.sub(r"\\s+", "", title).lower()
+    title_key = re.sub(r"\\s+", "", work_title).lower()
     talent_key = re.sub(r"\\s+", "", talent).lower()
     exact_candidates = []
     for candidate in candidates:
