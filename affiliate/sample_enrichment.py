@@ -324,15 +324,15 @@ def smashtv_public_sample(product, session):
 
     # WordPress search can return stale/unrelated entries. Only keep exact
     # title/talent candidates; otherwise crawl the newest listing pages.
-    title_key = re.sub(r"\\s+", "", work_title).lower()
-    talent_key = re.sub(r"\\s+", "", talent).lower()
+    title_key = re.sub(r"\s+", "", work_title).lower()
+    talent_key = re.sub(r"\s+", "", talent).lower()
     exact_candidates = []
     for candidate in candidates:
         try:
             response = session.get(candidate, timeout=15)
             if response.status_code >= 400:
                 continue
-            normalized = re.sub(r"\\s+", "", html.unescape(response.text)).lower()
+            normalized = re.sub(r"\s+", "", html.unescape(response.text)).lower()
             if title_key and title_key in normalized and (not talent_key or talent_key in normalized):
                 exact_candidates.append(candidate)
         except Exception:
@@ -350,13 +350,13 @@ def smashtv_public_sample(product, session):
                     if response.status_code >= 400:
                         continue
                     source = html.unescape(response.text)
-                    normalized_page = re.sub(r"\\s+", "", source).lower()
+                    normalized_page = re.sub(r"\s+", "", source).lower()
                     if title_key not in normalized_page and (not talent_key or talent_key not in normalized_page):
                         continue
-                    anchors = re.findall(r"<a[^>]+href=['\\\"]([^'\\\"]+)['\\\"][^>]*>(.*?)</a>", source, re.I | re.S)
+                    anchors = re.findall(r'<a[^>]+href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', source, re.I | re.S)
                     for link, label in anchors:
                         label_text = re.sub(r"<[^>]+>", " ", html.unescape(label))
-                        label_key = re.sub(r"\\s+", "", label_text).lower()
+                        label_key = re.sub(r"\s+", "", label_text).lower()
                         if title_key and title_key in label_key and (not talent_key or talent_key in label_key):
                             absolute = urljoin(url, link)
                             if "/works/" in absolute:
@@ -370,7 +370,7 @@ def smashtv_public_sample(product, session):
                     if response.status_code >= 400:
                         continue
                     source = html.unescape(response.text)
-                    normalized_page = re.sub(r"\\s+", "", source)
+                    normalized_page = re.sub(r"\s+", "", source)
                     if title.replace(" ", "") not in normalized_page and talent.replace(" ", "") not in normalized_page:
                         continue
                     for link in re.findall(r"href=['\"]([^'\"]+)['\"]", source, re.I):
