@@ -286,7 +286,7 @@ def smashtv_public_sample(product, session):
         try:
             response = session.get("https://smashtv.jp/", params={"s": query}, timeout=15)
             if response.status_code < 400:
-                candidates.extend(urljoin("https://smashtv.jp/", html.unescape(x)) for x in re.findall(r'href=["\\\']([^"\\\']+)["\\\']', response.text, re.I) if "/works/" in x)
+                candidates.extend(urljoin("https://smashtv.jp/", html.unescape(x)) for x in re.findall(r"href=['\"]([^'\"]+)['\"]", response.text, re.I) if "/works/" in x)
         except Exception:
             pass
     if not candidates:
@@ -301,7 +301,7 @@ def smashtv_public_sample(product, session):
                     normalized_page = re.sub(r"\\s+", "", source)
                     if title.replace(" ", "") not in normalized_page and talent.replace(" ", "") not in normalized_page:
                         continue
-                    for link in re.findall(r'href=["\\']([^"\\']+)["\\']', source, re.I):
+                    for link in re.findall(r"href=['\"]([^'\"]+)['\"]", source, re.I):
                         absolute = urljoin(url, link)
                         if base_path in absolute and absolute.rstrip("/") != f"https://smashtv.jp{base_path.rstrip('/')}":
                             candidates.append(absolute)
@@ -325,7 +325,7 @@ def smashtv_public_sample(product, session):
                 continue
             videos, images = public_page_media(source, page_url)
             if not videos:
-                for link in re.findall(r'href=["\\\']([^"\\\']+)["\\\']', source, re.I):
+                for link in re.findall(r"href=['\"]([^'\"]+)['\"]", source, re.I):
                     absolute = _abs_url(link, page_url)
                     if "smashtv.jp" in absolute and ("sample" in absolute.lower() or "movie" in absolute.lower()):
                         try:
