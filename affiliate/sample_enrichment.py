@@ -335,10 +335,11 @@ def smashtv_public_sample(product, session):
                     continue
     title_l = re.sub(r"\s+", "", title).lower()
     talent_l = re.sub(r"\s+", "", talent).lower()
+    processed = set()
     for page_url in unique(candidates, 20):
-        if page_url in seen or page_url.rstrip("/") == "https://smashtv.jp/works":
+        if page_url in processed or page_url.rstrip("/") == "https://smashtv.jp/works":
             continue
-        seen.add(page_url)
+        processed.add(page_url)
         try:
             response = session.get(page_url, timeout=15)
             if response.status_code >= 400:
