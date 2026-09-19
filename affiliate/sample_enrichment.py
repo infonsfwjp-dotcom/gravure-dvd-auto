@@ -382,6 +382,7 @@ def smashtv_public_sample(product, session):
     title_l = re.sub(r"\s+", "", title).lower()
     talent_l = re.sub(r"\s+", "", talent).lower()
     processed = set()
+    print(f"SmashTV lookup: title={work_title!r} talent={talent!r} candidates={unique(candidates, 20)!r}")
     for page_url in unique(candidates, 20):
         if page_url in processed or page_url.rstrip("/") == "https://smashtv.jp/works":
             continue
