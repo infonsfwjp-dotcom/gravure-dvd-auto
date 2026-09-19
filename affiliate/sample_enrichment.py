@@ -315,9 +315,48 @@ def smashtv_public_sample(product, session):
         except Exception:
             pass
 
+    # WordPress search can return stale/unrelated entries. Only keep exact
+    # title/talent candidates; otherwise crawl the newest listing pages.
+    title_key = re.sub(r"\\s+", "", title).lower()
+    talent_key = re.sub(r"\\s+", "", talent).lower()
+    exact_candidates = []
+    for candidate in candidates:
+        try:
+            response = session.get(candidate, timeout=15)
+            if response.status_code >= 400:
+                continue
+            normalized = re.sub(r"\\s+", "", html.unescape(response.text)).lower()
+            if title_key and title_key in normalized and (not talent_key or talent_key in normalized):
+                exact_candidates.append(candidate)
+        except Exception:
+            continue
+    candidates = unique(exact_candidates, 20)
+
     if not candidates:
-        for base_path, page_count in (("/works/", 36), ("/movie/", 23)):
+        # Recent releases are normally on the newest listing pages. Keep this
+        # bounded so Actions stays fast even as the archive grows.
+        for base_path, page_count in (("/works/", 5), ("/movie/", 5)):
             for page in range(1, page_count + 1):
+                url = f"https://smashtv.jp{base_path}" if page == 1 else f"https://smashtv.jp{base_path}page/{page}/"
+                try:
+                    response = session.get(url, timeout=15)
+                    if response.status_code >= 400:
+                        continue
+                    source = html.unescape(response.text)
+                    normalized_page = re.sub(r"\\s+", "", source).lower()
+                    if title_key not in normalized_page and (not talent_key or talent_key not in normalized_page):
+                        continue
+                    anchors = re.findall(r"<a[^>]+href=['\\\"]([^'\\\"]+)['\\\"][^>]*>(.*?)</a>", source, re.I | re.S)
+                    for link, label in anchors:
+                        label_text = re.sub(r"<[^>]+>", " ", html.unescape(label))
+                        label_key = re.sub(r"\\s+", "", label_text).lower()
+                        if title_key and title_key in label_key and (not talent_key or talent_key in label_key):
+                            absolute = urljoin(url, link)
+                            if "/works/" in absolute:
+                                candidates.append(absolute)
+                except Exception:
+                    continue
+
                 url = f"https://smashtv.jp{base_path}" if page == 1 else f"https://smashtv.jp{base_path}page/{page}/"
                 try:
                     response = session.get(url, timeout=15)
