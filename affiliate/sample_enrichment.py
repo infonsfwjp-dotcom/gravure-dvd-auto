@@ -342,7 +342,7 @@ def smashtv_public_sample(product, session):
     if not candidates:
         # Recent releases are normally on the newest listing pages. Keep this
         # bounded so Actions stays fast even as the archive grows.
-        for base_path, page_count in (("/works/", 5), ("/movie/", 5)):
+        for base_path, page_count in (("/works/", 36), ("/movie/", 23)):
             for page in range(1, page_count + 1):
                 url = f"https://smashtv.jp{base_path}" if page == 1 else f"https://smashtv.jp{base_path}page/{page}/"
                 try:
@@ -382,7 +382,6 @@ def smashtv_public_sample(product, session):
     title_l = re.sub(r"\s+", "", title).lower()
     talent_l = re.sub(r"\s+", "", talent).lower()
     processed = set()
-    print(f"SmashTV lookup: title={work_title!r} talent={talent!r} candidates={unique(candidates, 20)!r}")
     for page_url in unique(candidates, 20):
         if page_url in processed or page_url.rstrip("/") == "https://smashtv.jp/works":
             continue
