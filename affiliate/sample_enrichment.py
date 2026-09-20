@@ -213,16 +213,31 @@ def public_page_media(source, base_url):
 
 
 def filter_ione_images(images, code):
+    """Keep product-page sample/gallery images without accepting site-wide assets.
+
+    The official I-ONE detail page is already opened by exact product code.
+    Therefore the image URLs do not always repeat the code in their path.
+    """
     code_l = str(code or "").strip().lower()
     if not code_l:
         return []
-    return unique([
-        image for image in (images or [])
-        if f"/images/content/{code_l}/" in str(image).lower()
-        or f"/images/sample/{code_l}/" in str(image).lower()
-    ], 12)
-
-
+    blocked = ("logo", "icon", "favicon", "header", "footer", "banner", "bnr", "sns", "social", "arrow", "loading", "dummy", "background", "bg_")
+    kept = []
+    for image in images or []:
+        value = str(image or "").strip()
+        low = value.lower()
+        if not low:
+            continue
+        if code_l in low:
+            kept.append(value)
+            continue
+        path = low.split("?", 1)[0]
+        name = path.rsplit("/", 1)[-1]
+        if any(token in name for token in blocked):
+            continue
+        if any(token in path for token in ("sample", "gallery", "/content/", "/contents/")):
+            kept.append(value)
+    return unique(kept, 12)
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
         return {}
