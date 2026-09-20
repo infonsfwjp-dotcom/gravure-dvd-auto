@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+# Regeneration trigger: keep dist synchronized with product data.
 import html, json, os, re, shutil, hashlib
 from pathlib import Path
 from collections import defaultdict
