@@ -211,6 +211,18 @@ def public_page_media(source, base_url):
 
     return unique(videos, 3), unique(images, 12)
 
+
+def filter_ione_images(images, code):
+    code_l = str(code or "").strip().lower()
+    if not code_l:
+        return []
+    return unique([
+        image for image in (images or [])
+        if f"/images/content/{code_l}/" in str(image).lower()
+        or f"/images/sample/{code_l}/" in str(image).lower()
+    ], 12)
+
+
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
         return {}
@@ -259,6 +271,7 @@ def ione_public_sample(product, session):
             if "無料サンプル動画" not in normalized and "サンプル動画" not in normalized:
                 continue
             videos, images = public_page_media(source, page_url)
+            images = filter_ione_images(images, code)
             if videos:
                 return {
                     "sample_video_url": videos[0],
@@ -500,7 +513,7 @@ def main():
 
     for product in products:
         clear_stale_takeshobo_sample(product)
-        if product.get("sample_available") and product.get("sample_video_url"):
+        if product.get("sample_available") and product.get("sample_video_url") and product.get("maker_id") != "i-one":
             continue
         try:
             release = date.fromisoformat(str(product.get("release_date") or ""))
@@ -528,14 +541,13 @@ def main():
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
 
-        if not product.get("sample_video_url") and product.get("maker_id") == "i-one":
+        if product.get("maker_id") == "i-one":
             ione_checked += 1
             media = ione_public_sample(product, session)
             if media.get("sample_video_url"):
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
-                if media.get("sample_image_urls"):
-                    product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_image_urls"] = media.get("sample_image_urls", [])
                 product["sample_source_url"] = media.get("sample_source_url", "")
                 ione_changed += 1
 
