@@ -21,6 +21,7 @@ def _base_title(title: str) -> str:
     s = re.sub(r"【[^】]*限定[^】]*】", "", s)
     s = re.sub(r"\s*\(?(?:数量)?限定\)?", "", s, flags=re.I)
     s = re.sub(r"\s*チェキ(?:付き|付)?", "", s)
+    s = s.translate(str.maketrans({"？": "?", "！": "!"}))
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
