@@ -888,11 +888,7 @@
       "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-5.jpg",
       "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-6.jpg",
       "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-7.jpg",
-      "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-8.jpg",
-      "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-9.jpg",
-      "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-10.jpg",
-      "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-11.jpg",
-      "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-12.jpg"
+      "https://pics.dmm.co.jp/digital/video/5013tsds43117/5013tsds43117-8.jpg"
     ],
     "sample_video_url": "",
     "sample_available": false,
@@ -974,15 +970,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41450/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41450/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41450/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41450/LCDV-41450_sample.smil/playlist.m3u8?token=c6cb84da45824228dfc208d0ca02d29c&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41450"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -1001,15 +1007,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41446/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41446/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41446/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41446/LCDV-41446_sample.smil/playlist.m3u8?token=145ec83c4bef1a5a18b22c575a6492e8&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41446"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -1028,15 +1044,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41448/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41448/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41448/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41448/LCDV-41448_sample.smil/playlist.m3u8?token=46c7ec8cb96ba9e197a7f8ef653e16e0&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41448"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -1055,15 +1081,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41449/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41449/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41449/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41449/LCDV-41449_sample.smil/playlist.m3u8?token=1f18c5ba7cc1b13318f570bbecab8cda&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41449"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -1082,15 +1118,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41447/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41447/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41447/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41447/LCDV-41447_sample.smil/playlist.m3u8?token=93047a4c04cc1bf33c0e47dd09482e29&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41447"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -1109,15 +1155,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41445/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41445/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41445/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41445/LCDV-41445_sample.smil/playlist.m3u8?token=93b60face950d8f3df875040425b37b7&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41445"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
@@ -1163,15 +1219,25 @@
     "affiliate_checked_at": "2026-09-19",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "",
-    "sample_available": false,
+    "sample_image_urls": [
+      "https://i-one.tv/guide-teigaku/202606_subscription460.png?v2",
+      "https://file.i-one.tv/images/banner/side_idolone.png",
+      "https://file.i-one.tv/images/banner/side_signup.jpg",
+      "https://file.i-one.tv/images/banner/2405_takanashi_event_s.jpg",
+      "https://i-one.tv/img/side_device.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41451/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41451/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41451/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41451/LCDV-41451_sample.smil/playlist.m3u8?token=ca98f0bb99db09b353504cdd6b5d5ab9&env=real",
+    "sample_available": true,
     "tags": [
       "2026年",
       "2026-09",
       "2026-09発売",
       "ラインコミュニケーションズ / I-ONE"
-    ]
+    ],
+    "sample_source_url": "https://i-one.tv/content/detail/?id=LCDV-41451"
   },
   {
     "maker": "ラインコミュニケーションズ / I-ONE",
