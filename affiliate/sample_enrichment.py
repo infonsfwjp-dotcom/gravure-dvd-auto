@@ -185,6 +185,8 @@ def public_page_media(source, base_url):
     # literal <video>/<source> element. Capture both forms.
     patterns = (
         r'<(?:video|source)[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
+        r'<iframe[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
+        r'<embed[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
         r'https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^"\'<> ]+',
         r'https?://[^"\'<> ]+\.(?:mp4|m3u8)(?:\?[^"\'<> ]*)?',
     )
