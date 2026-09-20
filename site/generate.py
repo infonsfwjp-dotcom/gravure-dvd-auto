@@ -148,12 +148,6 @@ def product_page(p):
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
     title_unreleased = title.startswith("タイトル未定")
     sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:12]
-    if p.get("maker_id") == "i-one":
-        code_l = str(p.get("product_code") or "").strip().lower()
-        sample_images_remote = [
-            x for x in sample_images_remote
-            if code_l and f"/{code_l}/" in x.lower()
-        ]
     sample_images = [local_media(x) or x for x in sample_images_remote]
     if title_unreleased and not sample_images_remote:
         cover = ""
