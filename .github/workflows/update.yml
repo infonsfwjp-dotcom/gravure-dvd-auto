@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: gravure-dvd-auto-update
+  group: gravure-dvd-auto-main-write
   cancel-in-progress: false
 jobs:
   update:
