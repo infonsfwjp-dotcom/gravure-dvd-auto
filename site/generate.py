@@ -120,16 +120,19 @@ def card(p):
     return f'<article class="card"><div class="date">{esc(p.get("release_date"))}</div>{badge}<h2><a href="{href}">{esc(p.get("title"))}</a></h2><p>{esc(p.get("maker"))}</p>{f"<p>{esc(talent)}</p>" if talent else ""}<a class="btn" href="{href}">詳細を見る</a></article>'
 
 
-def original_review(p, has_sample):
+def original_review(p, has_sample, has_images=False):
     title = str(p.get("title") or "作品")
     maker = str(p.get("maker") or "メーカー")
     talent = "、".join(p.get("talent") or []) or "出演モデル"
     release = str(p.get("release_date") or "")
     if not has_sample:
         return ""
+    media_text = "サンプル映像と公開サンプル画像" if has_images else "公開されているサンプル映像"
+    image_text = "画像でも衣装や撮影シーンの雰囲気を確認できます。" if has_images else "画像については、公式に作品専用のサンプル画像が確認できる場合のみ掲載しています。"
     return (f"『{title}』は、{talent}を迎えた{maker}のグラビアDVDです。発売日は{release}。"
-            "公開されているサンプル映像と画像を見る限り、出演者の表情や衣装、撮影シーンの雰囲気を購入前に確認できる作品です。"
+            f"{media_text}から、出演者の表情や衣装、撮影シーンの雰囲気を購入前に確認できます。"
             "特にサンプル映像では静止画だけでは分かりにくい表情や動きもチェックできます。"
+            f"{image_text}"
             "当サイトでは公開サンプルから確認できる範囲に絞って、作品選びの参考になるポイントを簡潔にまとめています。")
 
 
@@ -145,6 +148,12 @@ def product_page(p):
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
     title_unreleased = title.startswith("タイトル未定")
     sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:12]
+    if p.get("maker_id") == "i-one":
+        code_l = str(p.get("product_code") or "").strip().lower()
+        sample_images_remote = [
+            x for x in sample_images_remote
+            if code_l and f"/{code_l}/" in x.lower()
+        ]
     sample_images = [local_media(x) or x for x in sample_images_remote]
     if title_unreleased and not sample_images_remote:
         cover = ""
@@ -179,7 +188,7 @@ def product_page(p):
         review_gallery = ''
         if review_images:
             review_gallery = '<div class="review-gallery">' + ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} レビュー参考画像" loading="lazy"></a>' for img in review_images) + '</div>'
-        review = f'<section class="box review"><h3>レビュー・見どころ</h3><p>{esc(original_review(p, True))}</p>{review_gallery}<div class="note">※レビュー本文は他サイトの記事を転載せず、公式商品情報と公開サンプル情報から当サイト向けに自動生成しています。画像は公開サンプルをレビュー補助として掲載しています。</div></section>'
+        review = f'<section class="box review"><h3>レビュー・見どころ</h3><p>{esc(original_review(p, True, bool(review_images)))}</p>{review_gallery}<div class="note">※レビュー本文は他サイトの記事を転載せず、公式商品情報と公開サンプル情報から当サイト向けに自動生成しています。画像は公開サンプルをレビュー補助として掲載しています。</div></section>'
         body = f'<article><div class="box"><div class="hero"><div>{media or ""}</div><div><span class="badge">サンプル映像あり</span><p class="muted">{esc(maker)} / {esc(release)}</p><h2>{esc(title)}</h2>{f"<p><strong>出演：</strong>{esc(talent)}</p>" if talent else ""}<div class="actions">{"".join(actions) if actions else ""}</div></div></div></div>{review}<p class="back"><a href="/">← 新作一覧へ戻る</a></p></article>'
         return body
 
