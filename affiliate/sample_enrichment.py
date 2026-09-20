@@ -299,6 +299,41 @@ def ione_public_sample(product, session):
     return {}
 
 
+
+
+def tokyolily_public_sample(product, session):
+    """Fallback sample gallery source for I-ONE titles."""
+    if product.get("maker_id") != "i-one":
+        return {}
+    jan = str(product.get("jan") or "").strip()
+    code = str(product.get("product_code") or "").strip()
+    title = str(product.get("title") or "").strip()
+    if not jan:
+        return {}
+    page_url = f"https://tokyolily.jp/products/{jan}_video"
+    try:
+        response = session.get(page_url, timeout=20)
+        if response.status_code >= 400:
+            return {}
+        source = html.unescape(response.text).replace("\\/","/")
+        normalized = re.sub(r"\s+", "", source).lower()
+        if code and code.lower() not in normalized and title and re.sub(r"\s+", "", title).lower() not in normalized:
+            return {}
+        marker = re.search(r"サンプル動画", source, re.I)
+        gallery_source = source[:marker.start()] if marker else source
+        images = []
+        for match in re.findall(r'<img[^>]+(?:src|data-src)=[\"\']([^\"\']+)[\"\']', gallery_source, re.I):
+            value = _abs_url(match, page_url)
+            if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
+                images.append(value)
+        images = unique(images, 12)
+        images = [x for x in images if not re.search(r"(?:logo|icon|loading|avatar|banner|button|sprite)", x, re.I)]
+        if images:
+            return {"sample_image_urls": images[:12], "sample_available": bool(product.get("sample_video_url")), "sample_source_url": page_url}
+    except Exception:
+        pass
+    return {}
+
 def smashtv_public_sample(product, session):
     """Find official SmashTV sample media for Spice Visual products."""
     if product.get("maker_id") != "spice_visual":
@@ -565,6 +600,11 @@ def main():
                 product["sample_image_urls"] = media.get("sample_image_urls", [])
                 product["sample_source_url"] = media.get("sample_source_url", "")
                 ione_changed += 1
+            if not product.get("sample_image_urls"):
+                lily = tokyolily_public_sample(product, session)
+                if lily.get("sample_image_urls"):
+                    product["sample_image_urls"] = lily["sample_image_urls"]
+                    product["sample_source_url"] = lily.get("sample_source_url", "")
 
         if not product.get("sample_video_url") and product.get("maker_id") == "spice_visual":
             media = smashtv_public_sample(product, session)
