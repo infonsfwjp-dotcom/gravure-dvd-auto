@@ -178,18 +178,18 @@ def product_page(p):
         else:
             media += f'<iframe src="{esc(sample_video)}" title="{esc(title)} サンプル映像" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe><div class="sample-help">映像が表示されない場合は、<a href="{esc(sample_video)}" target="_blank" rel="noopener">サンプル映像を別画面で開く</a>ことができます。</div>'
         media += '</div>'
-    if has_sample and sample_images:
+    if sample_images:
         media += '<div class="sample-video"><h3>サンプル画像</h3><div class="gallery">'
         media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="lazy"></a>' for img in sample_images)
         media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></div>'
 
-    if has_sample:
+    if has_sample or sample_images:
         review_images = sample_images[:4]
         review_gallery = ''
         if review_images:
             review_gallery = '<div class="review-gallery">' + ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} レビュー参考画像" loading="lazy"></a>' for img in review_images) + '</div>'
         review = f'<section class="box review"><h3>レビュー・見どころ</h3><p>{esc(original_review(p, True, bool(review_images)))}</p>{review_gallery}<div class="note">※レビュー本文は他サイトの記事を転載せず、公式商品情報と公開サンプル情報から当サイト向けに自動生成しています。画像は公開サンプルをレビュー補助として掲載しています。</div></section>'
-        body = f'<article><div class="box"><div class="hero"><div>{media or ""}</div><div><span class="badge">サンプル映像あり</span><p class="muted">{esc(maker)} / {esc(release)}</p><h2>{esc(title)}</h2>{f"<p><strong>出演：</strong>{esc(talent)}</p>" if talent else ""}<div class="actions">{"".join(actions) if actions else ""}</div></div></div></div>{review}<p class="back"><a href="/">← 新作一覧へ戻る</a></p></article>'
+        body = f'<article><div class="box"><div class="hero"><div>{media or ""}</div><div><span class="badge">{("サンプル映像あり" if has_sample else "サンプル画像あり")}</span><p class="muted">{esc(maker)} / {esc(release)}</p><h2>{esc(title)}</h2>{f"<p><strong>出演：</strong>{esc(talent)}</p>" if talent else ""}<div class="actions">{"".join(actions) if actions else ""}</div></div></div></div>{review}<p class="back"><a href="/">← 新作一覧へ戻る</a></p></article>'
         return body
 
     rows = []
