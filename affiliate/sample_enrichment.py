@@ -636,8 +636,6 @@ def main():
 
     for product in products:
         clear_stale_takeshobo_sample(product)
-        if product.get("sample_available") and product.get("sample_video_url") and product.get("maker_id") != "i-one":
-            continue
         try:
             release = date.fromisoformat(str(product.get("release_date") or ""))
         except ValueError:
@@ -652,6 +650,45 @@ def main():
             product.get("sample_available"),
         )
 
+        # I-ONE is not a FANZA-backed maker in this pipeline. Process its
+        # official catalog first so slow FANZA lookups cannot consume the
+        # enrichment step timeout before I-ONE media is refreshed.
+        if product.get("maker_id") == "i-one":
+            ione_checked += 1
+            media = ione_public_sample(product, session)
+            if media.get("sample_video_url") or media.get("sample_image_urls"):
+                if media.get("sample_video_url"):
+                    product["sample_video_url"] = media["sample_video_url"]
+                discovered = discover_ione_sample_frames(product, session) if len(media.get("sample_image_urls") or []) < 2 else []
+                if discovered:
+                    product["sample_image_urls"] = discovered
+                elif media.get("sample_image_urls"):
+                    product["sample_image_urls"] = filter_ione_images(
+                        media["sample_image_urls"], product.get("product_code")
+                    )
+                product["sample_available"] = bool(product.get("sample_video_url"))
+                product["sample_source_url"] = media.get("sample_source_url", "")
+                ione_changed += 1
+            if not product.get("sample_image_urls"):
+                lily = tokyolily_public_sample(product, session)
+                if lily.get("sample_image_urls"):
+                    product["sample_image_urls"] = lily["sample_image_urls"]
+                    product["sample_source_url"] = lily.get("sample_source_url", "")
+            after = (
+                product.get("cover_image_url"),
+                tuple(product.get("sample_image_urls") or []),
+                product.get("sample_video_url"),
+                product.get("sample_available"),
+            )
+            if before != after:
+                changed += 1
+            time.sleep(0.05)
+            continue
+
+        # FANZA-backed makers use the API enrichment below.
+        if product.get("sample_available") and product.get("sample_video_url"):
+            continue
+
         item = fanza_search(product, session)
         checked += 1
         if item:
@@ -663,26 +700,6 @@ def main():
             if media["sample_video_url"]:
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
-
-        if product.get("maker_id") == "i-one":
-            ione_checked += 1
-            media = ione_public_sample(product, session)
-            if media.get("sample_video_url") or media.get("sample_image_urls"):
-                if media.get("sample_video_url"):
-                    product["sample_video_url"] = media["sample_video_url"]
-                discovered = discover_ione_sample_frames(product, session)
-                if discovered:
-                    product["sample_image_urls"] = discovered
-                elif media.get("sample_image_urls"):
-                    product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
-                product["sample_available"] = bool(product.get("sample_video_url"))
-                product["sample_source_url"] = media.get("sample_source_url", "")
-                ione_changed += 1
-            if not product.get("sample_image_urls"):
-                lily = tokyolily_public_sample(product, session)
-                if lily.get("sample_image_urls"):
-                    product["sample_image_urls"] = lily["sample_image_urls"]
-                    product["sample_source_url"] = lily.get("sample_source_url", "")
 
         if not product.get("sample_video_url") and not product.get("sample_image_urls") and product.get("maker_id") == "spice_visual":
             media = smashtv_public_sample(product, session)
@@ -720,7 +737,6 @@ def main():
         f"public_ione_checked={ione_checked} public_ione_changed={ione_changed} "
         f"public_takeshobo_checked={takeshobo_checked} public_takeshobo_changed={takeshobo_changed}"
     )
-
 
 if __name__ == "__main__":
     main()
