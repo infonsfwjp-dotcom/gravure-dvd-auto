@@ -228,15 +228,15 @@ def filter_ione_images(images, code):
         low = value.lower()
         if not low:
             continue
-        if code_l in low:
-            kept.append(value)
-            continue
         path = low.split("?", 1)[0]
         name = path.rsplit("/", 1)[-1]
         if any(token in name for token in blocked):
             continue
-        if any(token in path for token in ("sample", "gallery", "/content/", "/contents/")):
+        # I-ONE's key/jacket images are product art, not sample frames.
+        # The sample gallery must use only the official /images/sample/ path.
+        if "/images/sample/" in path:
             kept.append(value)
+            continue
     return unique(kept, 12)
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
