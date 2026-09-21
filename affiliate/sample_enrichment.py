@@ -203,6 +203,13 @@ def public_page_media(source, base_url):
         if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
             images.append(value)
 
+    # I-ONE puts full-size sample image URLs on surrounding <a href> links
+    # while the <img> tags may expose only one lazy-loaded thumbnail.
+    for match in re.findall(r'<a[^>]+href=["\\']([^"\\']+)["\\']', source, re.I):
+        value = _abs_url(match, base_url)
+        if value and re.search(r"/images/sample/.*\\.(?:jpe?g|png|webp)(?:\\?|$)", value, re.I):
+            images.append(value)
+
     # Some pages expose image URLs only inside JSON/JS data.
     for match in re.findall(r'https?://[^"\'<> ]+\.(?:jpe?g|png|webp)(?:\?[^"\'<> ]*)?', source, re.I):
         value = _abs_url(match, base_url)
