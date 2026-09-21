@@ -64,6 +64,63 @@ def url(path):
     return f"{SITE_URL}/{path.lstrip('/')}" if SITE_URL else "/" + path.lstrip("/")
 
 
+def _image_size(path):
+    """Return (width, height) for common raster formats without extra dependencies."""
+    try:
+        data = Path(path).read_bytes()
+    except Exception:
+        return (0, 0)
+    if data.startswith(b"\x89PNG\r\n\x1a\n") and len(data) >= 24:
+        return (int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big"))
+    if data[:3] == b"GIF" and len(data) >= 10:
+        return (int.from_bytes(data[6:8], "little"), int.from_bytes(data[8:10], "little"))
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        if data[12:16] == b"VP8X" and len(data) >= 30:
+            w = 1 + int.from_bytes(data[24:27], "little")
+            h = 1 + int.from_bytes(data[27:30], "little")
+            return (w, h)
+    if data[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(data):
+            if data[i] != 0xFF:
+                i += 1
+                continue
+            marker = data[i + 1]
+            i += 2
+            if marker in (0xD8, 0xD9):
+                continue
+            if i + 2 > len(data):
+                break
+            length = int.from_bytes(data[i:i+2], "big")
+            if length < 2 or i + length > len(data):
+                break
+            if marker in range(0xC0, 0xC4) or marker in range(0xC5, 0xC8) or marker in range(0xC9, 0xCC) or marker in range(0xCD, 0xD0):
+                if i + 7 <= len(data):
+                    return (int.from_bytes(data[i+5:i+7], "big"), int.from_bytes(data[i+3:i+5], "big"))
+            i += length
+    return (0, 0)
+
+
+def _landscape_sample(images, remote_to_local=None):
+    """Prefer a genuinely horizontal sample frame for the video poster."""
+    best = None
+    best_score = -1
+    for image in images or []:
+        local = remote_to_local(image) if remote_to_local else image
+        if not local:
+            continue
+        path = DIST / local.lstrip("/") if str(local).startswith("/") else Path(local)
+        w, h = _image_size(path)
+        if not w or not h:
+            continue
+        ratio = w / h
+        if ratio >= 1.2:
+            score = ratio
+            if score > best_score:
+                best, best_score = image, score
+    return best or (images[0] if images else "")
+
+
 def local_media(src):
     """Download remote media during the build so the public site does not depend on DMM hotlinking."""
     src = str(src or "")
@@ -153,7 +210,7 @@ def product_page(p):
         cover = ""
     sample_video = str(p.get("sample_video_url") or "")
     has_sample = bool(p.get("sample_available") and sample_video)
-    poster = sample_images[0] if sample_images else cover
+    poster = _landscape_sample(sample_images, lambda x: local_media(x)) if sample_images else cover
 
     actions = []
     if buy:
