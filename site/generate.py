@@ -179,6 +179,8 @@ def product_page(p):
         media += '<div class="sample-video"><h3>サンプル画像</h3><div class="gallery sample-gallery">'
         media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="lazy"></a>' for img in sample_images)
         media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></div>'
+        if has_sample:
+            media += '<script>(function(){var v=document.querySelector("video.sample-video-player");if(!v)return;var imgs=[].slice.call(document.querySelectorAll(".sample-gallery img"));var pick=function(){var img=imgs.find(function(i){return i.naturalWidth>i.naturalHeight;});if(img&&img.currentSrc)v.poster=img.currentSrc;};imgs.forEach(function(i){i.complete?pick():i.addEventListener("load",pick,{once:true});});})();</script>'
 
     if has_sample or sample_images:
         review_images = sample_images[:6]
