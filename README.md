@@ -11,6 +11,7 @@
 - 毎日 03:17 JST 前後に自動実行
 - Actions > Update site > Run workflow で手動実行可能
 - DMM/FANZA認証情報はGitHub Secretsへ登録
+- サンプルメディア取得はサイト生成を長時間ブロックしないよう時間制限付きで実行
 
 必要なSecrets:
 - `DMM_API_ID`
