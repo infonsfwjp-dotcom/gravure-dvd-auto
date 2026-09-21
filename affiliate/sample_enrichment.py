@@ -239,26 +239,38 @@ def filter_ione_images(images, code):
             continue
     return unique(kept)
 def discover_ione_sample_frames(product, session):
-    """Probe the official numbered I-ONE sample-frame directory."""
+    """Discover every contiguous official I-ONE sample frame, not just the first 12."""
     if product.get("maker_id") != "i-one":
         return []
     code = str(product.get("product_code") or "").strip()
-    m = re.match(r"^(LCDV)-(\\d+)$", code, re.I)
+    m = re.match(r"^(LCDV)-(\d+)$", code, re.I)
     if not m:
         return []
     series = f"{m.group(1)}-{m.group(2)[:2]}"
     out = []
-    for n in range(1, 13):
+    misses = 0
+    # I-ONE sample galleries are numbered sequentially. Continue through a
+    # short gap so late-numbered frames are still found, while bounding the
+    # number of network probes per product.
+    for n in range(1, 61):
+        found = False
         for ext in ("jpg", "jpeg", "png", "webp"):
             image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.{ext}"
             try:
-                response = session.get(image, timeout=3)
+                response = session.get(image, timeout=2)
                 if response.status_code == 200 and len(response.content) > 1024:
                     out.append(image)
+                    found = True
                     break
             except Exception:
                 pass
-    return unique(out, 30)
+        if found:
+            misses = 0
+        else:
+            misses += 1
+            if misses >= 5:
+                break
+    return unique(out)
 
 
 def ione_public_sample(product, session):
