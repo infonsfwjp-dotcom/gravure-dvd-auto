@@ -970,8 +970,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41450/LCDV-41450_sample.smil/playlist.m3u8?token=a116541fa23c21d1cc84c532bee9c19f&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41450/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41450/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41450/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41450/LCDV-41450_sample.smil/playlist.m3u8?token=b6c71b6f616e95cf9c498269169833da&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
@@ -998,8 +1002,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41446/LCDV-41446_sample.smil/playlist.m3u8?token=3e60770fdefbc160d2afe18c492fec62&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41446/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41446/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41446/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41446/LCDV-41446_sample.smil/playlist.m3u8?token=96d74bceb6adfbb8e445877ca416ec26&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
@@ -1026,8 +1034,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41448/LCDV-41448_sample.smil/playlist.m3u8?token=6772f39d8fe8861947d72e0dcff8b08b&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41448/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41448/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41448/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41448/LCDV-41448_sample.smil/playlist.m3u8?token=b8bb5425f3a120ec3112357ff0008307&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
@@ -1054,8 +1066,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41449/LCDV-41449_sample.smil/playlist.m3u8?token=15255fe54b862e5a384dac21043a9e76&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41449/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41449/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41449/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41449/LCDV-41449_sample.smil/playlist.m3u8?token=fad035e339a003da4fc81902688f3167&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
@@ -1082,8 +1098,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41447/LCDV-41447_sample.smil/playlist.m3u8?token=4c012574c0066762600c825baaba2c11&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41447/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41447/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41447/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41447/LCDV-41447_sample.smil/playlist.m3u8?token=56969876c2a3c10c20a6cfdb20a7a168&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
@@ -1110,8 +1130,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41445/LCDV-41445_sample.smil/playlist.m3u8?token=d3814e2f28d63e72c0f5818bdd787b8c&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41445/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41445/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41445/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41445/LCDV-41445_sample.smil/playlist.m3u8?token=8b8e60974e0a22bf473b55f7e6727014&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
@@ -1165,8 +1189,12 @@
     "affiliate_checked_at": "2026-09-20",
     "status": "released",
     "cover_image_url": "",
-    "sample_image_urls": [],
-    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41451/LCDV-41451_sample.smil/playlist.m3u8?token=be51dd9c9b521916cb8bf0781d8ca819&env=real",
+    "sample_image_urls": [
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41451/key.jpg",
+      "https://file.i-one.tv/images/content/LCDV-41/LCDV-41451/jacket.jpg",
+      "https://file.i-one.tv/images/sample/LCDV-41/LCDV-41451/001.jpg"
+    ],
+    "sample_video_url": "https://stream.i-one.tv/vodedge001/_definst_/lorigin/LCDV-41/LCDV-41451/LCDV-41451_sample.smil/playlist.m3u8?token=87b911778efb40bfbb4a188e922a79e4&env=real",
     "sample_available": true,
     "tags": [
       "2026年",
