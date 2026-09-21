@@ -35,7 +35,7 @@ def main() -> None:
         for image in images:
             if image not in filtered and keep_image(str(image)):
                 filtered.append(str(image))
-        filtered = filtered[:8]
+        filtered = filtered
         if filtered != images:
             product["sample_image_urls"] = filtered
             changed += 1
