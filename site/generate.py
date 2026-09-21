@@ -147,7 +147,7 @@ def product_page(p):
     cover = local_media(cover_remote) or cover_remote
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
     title_unreleased = title.startswith("タイトル未定")
-    sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:14]
+    sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))]
     sample_images = [local_media(x) or x for x in sample_images_remote]
     if title_unreleased and not sample_images_remote:
         cover = ""
@@ -166,17 +166,17 @@ def product_page(p):
     elif title_unreleased:
         media += '<div class="cover cover-placeholder" role="img" aria-label="ジャケット画像未公開"><div>JACKET IMAGE</div><span>ジャケット画像は公開後に表示されます</span></div>'
     if has_sample:
-        video_thumb = sample_images[0] if sample_images else cover
+        video_thumb = cover
         media += '<div class="sample-video"><h3>サンプル映像</h3>'
         if re.search(r"\.(?:mp4|m3u8)(?:$|[?#])", sample_video, re.I):
-            media += f'<div class="video-shell"><video controls playsinline preload="metadata" poster="{esc(video_thumb)}"><source src="{esc(sample_video)}"></video></div>'
+            media += f'<div class="video-shell"><video class="sample-video-player" controls playsinline preload="metadata" poster="{esc(video_thumb)}"><source src="{esc(sample_video)}"></video></div>'
         elif video_thumb:
             media += f'<div class="video-shell video-thumb"><img src="{esc(video_thumb)}" alt="{esc(title)} サンプル映像サムネイル" loading="lazy"><a class="video-play" href="{esc(sample_video)}" target="_blank" rel="noopener" aria-label="サンプル映像を開く">▶</a></div><div class="sample-help">サムネイルをタップするとサンプル映像を開けます。</div>'
         else:
             media += f'<iframe src="{esc(sample_video)}" title="{esc(title)} サンプル映像" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe><div class="sample-help">映像が表示されない場合は、<a href="{esc(sample_video)}" target="_blank" rel="noopener">サンプル映像を別画面で開く</a>ことができます。</div>'
         media += '</div>'
     if sample_images:
-        media += '<div class="sample-video"><h3>サンプル画像</h3><div class="gallery">'
+        media += '<div class="sample-video"><h3>サンプル画像</h3><div class="gallery sample-gallery">'
         media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="lazy"></a>' for img in sample_images)
         media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></div>'
 
