@@ -238,6 +238,29 @@ def filter_ione_images(images, code):
             kept.append(value)
             continue
     return unique(kept, 12)
+def discover_ione_sample_frames(product, session):
+    """Probe the official numbered I-ONE sample-frame directory."""
+    if product.get("maker_id") != "i-one":
+        return []
+    code = str(product.get("product_code") or "").strip()
+    m = re.match(r"^(LCDV-\\d+)-\\d+$", code, re.I)
+    if not m:
+        return []
+    series = m.group(1)
+    out = []
+    for n in range(1, 31):
+        for ext in ("jpg", "jpeg", "png", "webp"):
+            image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.{ext}"
+            try:
+                response = session.get(image, timeout=8)
+                if response.status_code == 200 and len(response.content) > 1024:
+                    out.append(image)
+                    break
+            except Exception:
+                pass
+    return unique(out, 30)
+
+
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
         return {}
@@ -634,8 +657,11 @@ def main():
             if media.get("sample_video_url") or media.get("sample_image_urls"):
                 if media.get("sample_video_url"):
                     product["sample_video_url"] = media["sample_video_url"]
-                if media.get("sample_image_urls"):
-                    product["sample_image_urls"] = media["sample_image_urls"]
+                discovered = discover_ione_sample_frames(product, session)
+                if discovered:
+                    product["sample_image_urls"] = discovered
+                elif media.get("sample_image_urls"):
+                    product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
                 product["sample_available"] = bool(product.get("sample_video_url"))
                 product["sample_source_url"] = media.get("sample_source_url", "")
                 ione_changed += 1
