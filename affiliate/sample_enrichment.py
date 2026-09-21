@@ -613,10 +613,12 @@ def main():
         if product.get("maker_id") == "i-one":
             ione_checked += 1
             media = ione_public_sample(product, session)
-            if media.get("sample_video_url"):
-                product["sample_video_url"] = media["sample_video_url"]
-                product["sample_available"] = True
-                product["sample_image_urls"] = media.get("sample_image_urls", [])
+            if media.get("sample_video_url") or media.get("sample_image_urls"):
+                if media.get("sample_video_url"):
+                    product["sample_video_url"] = media["sample_video_url"]
+                if media.get("sample_image_urls"):
+                    product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_available"] = bool(product.get("sample_video_url"))
                 product["sample_source_url"] = media.get("sample_source_url", "")
                 ione_changed += 1
             if not product.get("sample_image_urls"):
@@ -625,7 +627,7 @@ def main():
                     product["sample_image_urls"] = lily["sample_image_urls"]
                     product["sample_source_url"] = lily.get("sample_source_url", "")
 
-        if not product.get("sample_video_url") and product.get("maker_id") == "spice_visual":
+        if not product.get("sample_video_url") and not product.get("sample_image_urls") and product.get("maker_id") == "spice_visual":
             media = smashtv_public_sample(product, session)
             if media.get("sample_video_url"):
                 product["sample_video_url"] = media["sample_video_url"]
@@ -634,7 +636,7 @@ def main():
                     product["sample_image_urls"] = media["sample_image_urls"]
                 product["sample_source_url"] = media.get("sample_source_url", "")
 
-        if not product.get("sample_video_url") and product.get("maker_id") == "takeshobo":
+        if not product.get("sample_video_url") and not product.get("sample_image_urls") and product.get("maker_id") == "takeshobo":
             takeshobo_checked += 1
             media = takeshobo_public_sample(product, session)
             if media.get("sample_video_url"):
