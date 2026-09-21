@@ -248,11 +248,11 @@ def discover_ione_sample_frames(product, session):
         return []
     series = m.group(1)
     out = []
-    for n in range(1, 31):
+    for n in range(1, 13):
         for ext in ("jpg", "jpeg", "png", "webp"):
             image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.{ext}"
             try:
-                response = session.get(image, timeout=8)
+                response = session.get(image, timeout=3)
                 if response.status_code == 200 and len(response.content) > 1024:
                     out.append(image)
                     break
@@ -319,10 +319,10 @@ def ione_public_sample(product, session):
                 prefix = code.upper()
                 bucket = prefix[:-2] if len(prefix) > 2 else prefix
                 base = f"https://file.i-one.tv/images/sample/{bucket}/{prefix}/"
-                for number in range(1, 21):
+                for number in range(1, 13):
                     image_url = f"{base}{number:03d}.jpg"
                     try:
-                        probe = session.get(image_url, timeout=8)
+                        probe = session.get(image_url, timeout=3)
                         if probe.status_code == 200 and len(probe.content) > 1024:
                             numbered.append(image_url)
                     except Exception:
