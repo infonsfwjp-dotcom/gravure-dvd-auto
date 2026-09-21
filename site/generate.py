@@ -147,7 +147,7 @@ def product_page(p):
     cover = local_media(cover_remote) or cover_remote
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
     title_unreleased = title.startswith("タイトル未定")
-    sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:12]
+    sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))][:14]
     sample_images = [local_media(x) or x for x in sample_images_remote]
     if title_unreleased and not sample_images_remote:
         cover = ""
@@ -178,7 +178,7 @@ def product_page(p):
         media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></div>'
 
     if has_sample or sample_images:
-        review_images = sample_images[:4]
+        review_images = sample_images[:6]
         review_gallery = ''
         if review_images:
             review_gallery = '<div class="review-gallery">' + ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} レビュー参考画像" loading="lazy"></a>' for img in review_images) + '</div>'
