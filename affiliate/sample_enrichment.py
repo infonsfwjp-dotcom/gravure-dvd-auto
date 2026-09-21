@@ -243,10 +243,10 @@ def discover_ione_sample_frames(product, session):
     if product.get("maker_id") != "i-one":
         return []
     code = str(product.get("product_code") or "").strip()
-    m = re.match(r"^(LCDV-\\d+)-\\d+$", code, re.I)
+    m = re.match(r"^(LCDV)-(\\d+)$", code, re.I)
     if not m:
         return []
-    series = m.group(1)
+    series = f"{m.group(1)}-{m.group(2)[:2]}"
     out = []
     for n in range(1, 13):
         for ext in ("jpg", "jpeg", "png", "webp"):
@@ -317,7 +317,8 @@ def ione_public_sample(product, session):
             numbered = []
             if code:
                 prefix = code.upper()
-                bucket = prefix[:-2] if len(prefix) > 2 else prefix
+                digits = prefix.split("-", 1)[1] if "-" in prefix else ""
+                bucket = f"LCDV-{digits[:2]}" if digits else prefix
                 base = f"https://file.i-one.tv/images/sample/{bucket}/{prefix}/"
                 for number in range(1, 13):
                     image_url = f"{base}{number:03d}.jpg"
