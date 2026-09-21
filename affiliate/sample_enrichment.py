@@ -246,7 +246,7 @@ def filter_ione_images(images, code):
             continue
     return unique(kept)
 def discover_ione_sample_frames(product, session):
-    """Discover every contiguous official I-ONE sample frame, not just the first 12."""
+    """Last-resort expansion of an official I-ONE numbered sample gallery."""
     if product.get("maker_id") != "i-one":
         return []
     code = str(product.get("product_code") or "").strip()
@@ -256,29 +256,23 @@ def discover_ione_sample_frames(product, session):
     series = f"{m.group(1)}-{m.group(2)[:2]}"
     out = []
     misses = 0
-    # I-ONE sample galleries are numbered sequentially. Continue through a
-    # short gap so late-numbered frames are still found, while bounding the
-    # number of network probes per product.
-    for n in range(1, 61):
-        found = False
-        for ext in ("jpg", "jpeg", "png", "webp"):
-            image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.{ext}"
-            try:
-                response = session.get(image, timeout=2)
-                if response.status_code == 200 and len(response.content) > 1024:
-                    out.append(image)
-                    found = True
+    # This is deliberately bounded: FANZA/DMM remains the primary source.
+    for n in range(1, 31):
+        image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.jpg"
+        try:
+            response = session.get(image, timeout=2)
+            if response.status_code == 200 and len(response.content) > 1024:
+                out.append(image)
+                misses = 0
+            else:
+                misses += 1
+                if misses >= 3:
                     break
-            except Exception:
-                pass
-        if found:
-            misses = 0
-        else:
+        except Exception:
             misses += 1
-            if misses >= 5:
+            if misses >= 3:
                 break
     return unique(out)
-
 
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
