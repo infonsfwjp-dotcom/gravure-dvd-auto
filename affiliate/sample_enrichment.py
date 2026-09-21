@@ -287,11 +287,29 @@ def ione_public_sample(product, session):
                 continue
             videos, images = public_page_media(source, page_url)
             images = filter_ione_images(images, code)
-            if videos:
+
+            # Probe the official numbered sample gallery as well. The detail
+            # page often exposes only key/jacket/001 in HTML even though more
+            # product-specific sample frames are available at the same path.
+            numbered = []
+            if code:
+                prefix = code.upper()
+                bucket = prefix[:-2] if len(prefix) > 2 else prefix
+                base = f"https://file.i-one.tv/images/sample/{bucket}/{prefix}/"
+                for number in range(1, 21):
+                    image_url = f"{base}{number:03d}.jpg"
+                    try:
+                        probe = session.get(image_url, timeout=8)
+                        if probe.status_code == 200 and len(probe.content) > 1024:
+                            numbered.append(image_url)
+                    except Exception:
+                        continue
+            images = unique(numbered or images, 12)
+            if videos or images:
                 return {
-                    "sample_video_url": videos[0],
+                    "sample_video_url": videos[0] if videos else "",
                     "sample_image_urls": images,
-                    "sample_available": True,
+                    "sample_available": bool(videos),
                     "sample_source_url": page_url,
                 }
         except Exception:
