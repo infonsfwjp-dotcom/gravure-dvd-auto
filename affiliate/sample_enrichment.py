@@ -333,7 +333,7 @@ def ione_public_sample(product, session):
                 digits = prefix.split("-", 1)[1] if "-" in prefix else ""
                 bucket = f"LCDV-{digits[:2]}" if digits else prefix
                 base = f"https://file.i-one.tv/images/sample/{bucket}/{prefix}/"
-                for number in range(1, 13):
+                for number in range(1, 31):
                     image_url = f"{base}{number:03d}.jpg"
                     try:
                         probe = session.get(image_url, timeout=3)
@@ -341,7 +341,7 @@ def ione_public_sample(product, session):
                             numbered.append(image_url)
                     except Exception:
                         continue
-            images = unique(numbered or images, 12)
+            images = unique(numbered or images, 30)
             if videos or images:
                 return {
                     "sample_video_url": videos[0] if videos else "",
