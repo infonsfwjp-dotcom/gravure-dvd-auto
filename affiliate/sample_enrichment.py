@@ -657,45 +657,9 @@ def main():
             product.get("sample_available"),
         )
 
-        # I-ONE is not a FANZA-backed maker in this pipeline. Process its
-        # official catalog first so slow FANZA lookups cannot consume the
-        # enrichment step timeout before I-ONE media is refreshed.
-        if product.get("maker_id") == "i-one":
-            ione_checked += 1
-            media = ione_public_sample(product, session)
-            if media.get("sample_video_url") or media.get("sample_image_urls"):
-                if media.get("sample_video_url"):
-                    product["sample_video_url"] = media["sample_video_url"]
-                discovered = discover_ione_sample_frames(product, session) if len(media.get("sample_image_urls") or []) < 2 else []
-                if discovered:
-                    product["sample_image_urls"] = discovered
-                elif media.get("sample_image_urls"):
-                    product["sample_image_urls"] = filter_ione_images(
-                        media["sample_image_urls"], product.get("product_code")
-                    )
-                product["sample_available"] = bool(product.get("sample_video_url"))
-                product["sample_source_url"] = media.get("sample_source_url", "")
-                ione_changed += 1
-            if not product.get("sample_image_urls"):
-                lily = tokyolily_public_sample(product, session)
-                if lily.get("sample_image_urls"):
-                    product["sample_image_urls"] = lily["sample_image_urls"]
-                    product["sample_source_url"] = lily.get("sample_source_url", "")
-            after = (
-                product.get("cover_image_url"),
-                tuple(product.get("sample_image_urls") or []),
-                product.get("sample_video_url"),
-                product.get("sample_available"),
-            )
-            if before != after:
-                changed += 1
-            time.sleep(0.05)
-            continue
-
-        # FANZA-backed makers use the API enrichment below.
-        if product.get("sample_available") and product.get("sample_video_url"):
-            continue
-
+        # FANZA/DMM is the primary source for every maker, including I-ONE.
+        # Official maker sites are used only as a fallback when FANZA/DMM has
+        # no sample media for an otherwise matched product.
         item = fanza_search(product, session)
         checked += 1
         if item:
@@ -703,10 +667,40 @@ def main():
             if media["cover_image_url"]:
                 product["cover_image_url"] = media["cover_image_url"]
             if media["sample_image_urls"]:
-                product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_image_urls"] = unique(media["sample_image_urls"])
             if media["sample_video_url"]:
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
+
+        if product.get("maker_id") == "i-one":
+            ione_checked += 1
+            # Only supplement from official I-ONE when FANZA/DMM did not
+            # provide the needed sample media.
+            if not product.get("sample_video_url") or not product.get("sample_image_urls"):
+                media = ione_public_sample(product, session)
+                if not product.get("sample_video_url") and media.get("sample_video_url"):
+                    product["sample_video_url"] = media["sample_video_url"]
+                if not product.get("sample_image_urls") and media.get("sample_image_urls"):
+                    product["sample_image_urls"] = filter_ione_images(
+                        media["sample_image_urls"], product.get("product_code")
+                    )
+                if product.get("sample_video_url") or product.get("sample_image_urls"):
+                    product["sample_available"] = bool(product.get("sample_video_url"))
+                    product["sample_source_url"] = media.get("sample_source_url", "")
+                    ione_changed += 1
+
+            # If the official page exposes only one thumbnail, expand the
+            # official numbered gallery as a last-resort supplement.
+            if len(product.get("sample_image_urls") or []) < 2:
+                discovered = discover_ione_sample_frames(product, session)
+                if discovered:
+                    product["sample_image_urls"] = discovered
+
+            if not product.get("sample_image_urls"):
+                lily = tokyolily_public_sample(product, session)
+                if lily.get("sample_image_urls"):
+                    product["sample_image_urls"] = lily["sample_image_urls"]
+                    product["sample_source_url"] = lily.get("sample_source_url", "")
 
         if not product.get("sample_video_url") and not product.get("sample_image_urls") and product.get("maker_id") == "spice_visual":
             media = smashtv_public_sample(product, session)
@@ -736,7 +730,7 @@ def main():
         )
         if before != after:
             changed += 1
-        time.sleep(0.10)
+        time.sleep(0.05)
 
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
