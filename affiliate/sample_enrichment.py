@@ -78,7 +78,7 @@ def extract_media(item):
 
     return {
         "cover_image_url": unique(covers, 1)[0] if covers else "",
-        "sample_image_urls": unique(images, 12),
+        "sample_image_urls": unique(images),
         "sample_video_url": unique(movies, 1)[0] if movies else "",
         "sample_available": bool(movies),
     }
@@ -209,7 +209,7 @@ def public_page_media(source, base_url):
         if value:
             images.append(value)
 
-    return unique(videos, 3), unique(images, 12)
+    return unique(videos, 3), unique(images)
 
 
 def filter_ione_images(images, code):
@@ -237,7 +237,7 @@ def filter_ione_images(images, code):
         if "/images/sample/" in path:
             kept.append(value)
             continue
-    return unique(kept, 12)
+    return unique(kept)
 def discover_ione_sample_frames(product, session):
     """Probe the official numbered I-ONE sample-frame directory."""
     if product.get("maker_id") != "i-one":
@@ -386,7 +386,7 @@ def tokyolily_public_sample(product, session):
                 value = _abs_url(match, page_url)
                 if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
                     images.append(value)
-            images = unique(images, 12)
+            images = unique(images)
             images = [x for x in images if not re.search(r"(?:logo|icon|loading|avatar|banner|button|sprite)", x, re.I)]
             if images:
                 return {"sample_image_urls": images[:12], "sample_available": bool(product.get("sample_video_url")), "sample_source_url": page_url}
@@ -536,7 +536,7 @@ def smashtv_public_sample(product, session):
                         except Exception:
                             continue
             if videos:
-                return {"sample_video_url": videos[0], "sample_image_urls": unique(images, 12), "sample_available": True, "sample_source_url": page_url}
+                return {"sample_video_url": videos[0], "sample_image_urls": unique(images), "sample_available": True, "sample_source_url": page_url}
         except Exception:
             continue
     return {}
