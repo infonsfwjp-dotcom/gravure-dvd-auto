@@ -342,6 +342,11 @@ def ione_public_sample(product, session):
                     except Exception:
                         continue
             images = unique(numbered or images, 30)
+            # If the official page exposes only a single frame, keep probing
+            # contiguous frames even when the first probe sequence stopped early.
+            if len(images) < 2 and code:
+                extra = discover_ione_sample_frames(product, session)
+                images = unique(images + extra, 30)
             if videos or images:
                 return {
                     "sample_video_url": videos[0] if videos else "",
