@@ -308,30 +308,49 @@ def tokyolily_public_sample(product, session):
     jan = str(product.get("jan") or "").strip()
     code = str(product.get("product_code") or "").strip()
     title = str(product.get("title") or "").strip()
-    if not jan:
-        return {}
-    page_url = f"https://tokyolily.jp/products/{jan}_video"
-    try:
-        response = session.get(page_url, timeout=20)
-        if response.status_code >= 400:
-            return {}
-        source = html.unescape(response.text).replace("\\/","/")
-        normalized = re.sub(r"\s+", "", source).lower()
-        if code and code.lower() not in normalized and title and re.sub(r"\s+", "", title).lower() not in normalized:
-            return {}
-        marker = re.search(r"サンプル動画", source, re.I)
-        gallery_source = source[:marker.start()] if marker else source
-        images = []
-        for match in re.findall(r'<img[^>]+(?:src|data-src)=[\"\']([^\"\']+)[\"\']', gallery_source, re.I):
-            value = _abs_url(match, page_url)
-            if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
-                images.append(value)
-        images = unique(images, 12)
-        images = [x for x in images if not re.search(r"(?:logo|icon|loading|avatar|banner|button|sprite)", x, re.I)]
-        if images:
-            return {"sample_image_urls": images[:12], "sample_available": bool(product.get("sample_video_url")), "sample_source_url": page_url}
-    except Exception:
-        pass
+    candidates = []
+    if jan:
+        candidates.append(f"https://tokyolily.jp/products/{jan}_video")
+    # Some I-ONE records have no JAN. Search TokyoLily by exact product code
+    # and title, then only accept a page whose content matches this product.
+    for query in (code, title.split("/", 1)[0].strip(), title):
+        if not query:
+            continue
+        try:
+            response = session.get("https://tokyolily.jp/", params={"s": query}, timeout=20)
+            if response.status_code >= 400:
+                continue
+            for link in re.findall(r'href=[\"\']([^"\']+_video)[\"\']', response.text, re.I):
+                absolute = urljoin("https://tokyolily.jp/", html.unescape(link))
+                if absolute not in candidates:
+                    candidates.append(absolute)
+        except Exception:
+            pass
+    for page_url in candidates[:10]:
+        try:
+            response = session.get(page_url, timeout=20)
+            if response.status_code >= 400:
+                continue
+            source = html.unescape(response.text).replace("\\/","/")
+            normalized = re.sub(r"\s+", "", source).lower()
+            code_ok = bool(code and code.lower() in normalized)
+            title_key = re.sub(r"\s+", "", title.split("/", 1)[0]).lower()
+            title_ok = bool(title_key and title_key in normalized)
+            if not code_ok and not title_ok:
+                continue
+            marker = re.search(r"サンプル動画", source, re.I)
+            gallery_source = source[:marker.start()] if marker else source
+            images = []
+            for match in re.findall(r'<img[^>]+(?:src|data-src|data-original)=[\"\']([^\"\']+)[\"\']', gallery_source, re.I):
+                value = _abs_url(match, page_url)
+                if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
+                    images.append(value)
+            images = unique(images, 12)
+            images = [x for x in images if not re.search(r"(?:logo|icon|loading|avatar|banner|button|sprite)", x, re.I)]
+            if images:
+                return {"sample_image_urls": images[:12], "sample_available": bool(product.get("sample_video_url")), "sample_source_url": page_url}
+        except Exception:
+            continue
     return {}
 
 def smashtv_public_sample(product, session):
