@@ -125,7 +125,7 @@ def original_review(p, has_sample, has_images=False):
     maker = str(p.get("maker") or "メーカー")
     talent = "、".join(p.get("talent") or []) or "出演モデル"
     release = str(p.get("release_date") or "")
-    if not has_sample:
+    if not has_sample and not has_images:
         return ""
     media_text = "サンプル映像と公開サンプル画像" if has_images else "公開されているサンプル映像"
     image_text = "画像でも衣装や撮影シーンの雰囲気を確認できます。" if has_images else "画像については、公式に作品専用のサンプル画像が確認できる場合のみ掲載しています。"
@@ -182,7 +182,8 @@ def product_page(p):
         review_gallery = ''
         if review_images:
             review_gallery = '<div class="review-gallery">' + ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} レビュー参考画像" loading="lazy"></a>' for img in review_images) + '</div>'
-        review = f'<section class="box review"><h3>レビュー・見どころ</h3><p>{esc(original_review(p, True, bool(review_images)))}</p>{review_gallery}<div class="note">※レビュー本文は他サイトの記事を転載せず、公式商品情報と公開サンプル情報から当サイト向けに自動生成しています。画像は公開サンプルをレビュー補助として掲載しています。</div></section>'
+        review = f'<section class="box review"><h3>レビュー・見どころ</h3><p>{esc(review_text)}</p>{review_gallery}<div class="note">※レビュー本文は他サイトの記事を転載せず、公式商品情報と公開サンプル情報から当サイト向けに自動生成しています。画像は公開サンプルをレビュー補助として掲載しています。</div></section>'
+        review_text = original_review(p, has_sample, bool(review_images))
         body = f'<article><div class="box"><div class="hero"><div>{media or ""}</div><div><span class="badge">{("サンプル映像あり" if has_sample else "サンプル画像あり")}</span><p class="muted">{esc(maker)} / {esc(release)}</p><h2>{esc(title)}</h2>{f"<p><strong>出演：</strong>{esc(talent)}</p>" if talent else ""}<div class="actions">{"".join(actions) if actions else ""}</div></div></div></div>{review}<p class="back"><a href="/">← 新作一覧へ戻る</a></p></article>'
         return body
 
