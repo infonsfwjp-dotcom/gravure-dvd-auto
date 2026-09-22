@@ -5,6 +5,8 @@ import re
 import time
 from pathlib import Path
 import requests
+from bs4 import BeautifulSoup
+from urllib.parse import unquote, urlparse, parse_qs
 
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
@@ -110,6 +112,40 @@ def search_keywords(p):
     return keywords
 
 
+def official_cids(source_url):
+    if not source_url:
+        return []
+    try:
+        r = requests.get(source_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        r.raise_for_status()
+    except requests.RequestException:
+        return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    found = []
+    for a in soup.find_all("a", href=True):
+        href = unquote(unquote(a.get("href", "")))
+        if "dmm" not in href.lower() and "fanza" not in href.lower():
+            continue
+        for m in re.finditer(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", href, re.I):
+            cid = m.group(1).lower()
+            if cid not in found: found.append(cid)
+        try:
+            for values in parse_qs(urlparse(href).query).values():
+                for value in values:
+                    for m in re.finditer(r"(?:^|[?&])cid=([a-zA-Z0-9_-]+)", unquote(unquote(value)), re.I):
+                        cid = m.group(1).lower()
+                        if cid not in found: found.append(cid)
+        except ValueError: pass
+    return found[:10]
+
+def search_official_cids(p):
+    if not API_ID or not AFFILIATE_ID: return []
+    items = []
+    for cid in official_cids(p.get("source_url")):
+        params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "cid": cid, "hits": 20, "offset": 1, "output": "json"}
+        found, _ = request_items(params)
+        items.extend(found)
+    return items
 def request_items(params):
     r = requests.get(API_URL, params=params, timeout=30)
     if r.status_code >= 400:
