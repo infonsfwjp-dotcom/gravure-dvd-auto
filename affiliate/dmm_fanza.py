@@ -243,7 +243,7 @@ def enrich():
     for p in products:
         p.pop("affiliate_error", None)
         try:
-            ranked = sorted(((score(p, i), i) for i in search(p)), key=lambda x: x[0], reverse=True)
+            ranked = sorted(((score(p, i), i) for i in (search_official_cids(p) + search(p))), key=lambda x: x[0], reverse=True)
             if diagnostics < 10:
                 print(diagnostic_line(p, ranked))
                 diagnostics += 1
