@@ -207,7 +207,7 @@ def public_page_media(source, base_url):
     # while the <img> tags may expose only one lazy-loaded thumbnail.
     for match in re.findall(r'<a[^>]+href=["\\']([^"\\']+)["\\']', source, re.I):
         value = _abs_url(match, base_url)
-        if value and re.search(r"/images/sample/.*\\.(?:jpe?g|png|webp)(?:\\?|$)", value, re.I):
+        if value and re.search(r"/images/sample/.*\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
             images.append(value)
 
     # Some pages expose image URLs only inside JSON/JS data.
