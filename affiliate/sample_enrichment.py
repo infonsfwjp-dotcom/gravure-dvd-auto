@@ -178,17 +178,14 @@ def _abs_url(value, base):
 
 
 def public_page_media(source, base_url):
-    source = html.unescape(source).replace("\\/", "/")
+    source = html.unescape(source).replace("\\/","/")
     videos = []
-
-    # I-ONE may place the sample MP4 URL in inline JavaScript rather than a
-    # literal <video>/<source> element. Capture both forms.
     patterns = (
-        r'<(?:video|source)[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
-        r'<iframe[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
-        r'<embed[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
-        r'https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^"\'<> ]+',
-        r'https?://[^"\'<> ]+\.(?:mp4|m3u8)(?:\?[^"\'<> ]*)?',
+        r'<(?:video|source)[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+        r'<iframe[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+        r'<embed[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+        r'https?://(?:www\\.)?(?:youtube\\.com/embed/|youtu\\.be/)[^"\\'<> ]+',
+        r'https?://[^"\\'<> ]+\\.(?:mp4|m3u8)(?:\\?[^"\\'<> ]*)?',
     )
     for pattern in patterns:
         for match in re.findall(pattern, source, re.I):
@@ -198,23 +195,21 @@ def public_page_media(source, base_url):
                 videos.append(value)
 
     images = []
-    for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
+    # Capture every common lazy-loading attribute, not just src.
+    for match in re.findall(
+        r'<(?:img|a)[^>]+(?:src|data-src|data-original|data-lazy-src|href)=["\\']([^"\\']+)["\\']',
+        source, re.I
+    ):
         value = _abs_url(match, base_url)
-        if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
+        if value and re.search(r'\\.(?:jpe?g|png|webp)(?:\\?|$)', value, re.I):
             images.append(value)
 
-    # I-ONE puts full-size sample image URLs on surrounding <a href> links
-    # while the <img> tags may expose only one lazy-loaded thumbnail.
-    for match in re.findall(r'<a[^>]+href=["\\']([^"\\']+)["\\']', source, re.I):
-        value = _abs_url(match, base_url)
-        if value and re.search(r"/images/sample/.*\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
-            images.append(value)
-
-    # Some pages expose image URLs only inside JSON/JS data.
-    for match in re.findall(r'https?://[^"\'<> ]+\.(?:jpe?g|png|webp)(?:\?[^"\'<> ]*)?', source, re.I):
-        value = _abs_url(match, base_url)
-        if value:
-            images.append(value)
+    # Also extract sample image URLs embedded in JSON/JS attributes.
+    for match in re.findall(
+        r'https?://[^"\\'<> ]+/images/sample/[^"\\'<> ]+?\\.(?:jpe?g|png|webp)(?:\\?[^"\\'<> ]*)?',
+        source, re.I
+    ):
+        images.append(_abs_url(match, base_url))
 
     return unique(videos, 3), unique(images)
 
