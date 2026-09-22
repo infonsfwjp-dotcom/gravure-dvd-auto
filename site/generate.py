@@ -180,8 +180,8 @@ def card(p):
 
 
 def original_review(p, has_sample, has_images=False):
-    title = str(p.get("title") or "作品")
-    maker = str(p.get("maker") or "メーカー")
+    title = display_title(p.get("title") or "作品")
+    maker = display_maker(p.get("maker") or "メーカー")
     talent = "、".join(p.get("talent") or []) or "出演モデル"
     release = str(p.get("release_date") or "")
     if not has_sample and not has_images:
@@ -198,9 +198,9 @@ def original_review(p, has_sample, has_images=False):
 def display_title(value):
     """Hide FANZA/manufacturer marketing suffixes that are not needed on this site."""
     title = str(value or "")
-    title = re.sub(r"\\s*【I-ONE TV限定特典映像付き】", "", title)
-    title = re.sub(r"\\s*[/／]\\s*4Kあり", "", title)
-    title = re.sub(r"\\s*4Kあり", "", title)
+    title = re.sub(r"\s*【I-ONE TV限定特典映像付き】", "", title)
+    title = re.sub(r"\s*[/／]\s*4Kあり", "", title)
+    title = re.sub(r"\s*4Kあり", "", title)
     return title.strip()
 
 
