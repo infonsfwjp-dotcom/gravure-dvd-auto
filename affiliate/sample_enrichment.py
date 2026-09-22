@@ -341,7 +341,7 @@ def ione_public_sample(product, session):
                             numbered.append(image_url)
                     except Exception:
                         continue
-            images = unique(numbered or images, 30)
+            images = unique(numbered or images, 15)
             # If the official page exposes only a single frame, keep probing
             # contiguous frames even when the first probe sequence stopped early.
             if len(images) < 2 and code:
