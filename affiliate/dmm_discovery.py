@@ -254,6 +254,12 @@ def discover_i_one_fallback(start, end, all_items):
 def discover():
     if not API_ID or not AFFILIATE_ID: raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
     today = date.today(); start = today - timedelta(days=30); end = today + timedelta(days=180); all_items = {}
+    existing = {}
+    if OUT.exists():
+        try:
+            existing = {str(p.get("product_code") or "").strip(): p for p in json.loads(OUT.read_text(encoding="utf-8")) if p.get("product_code")}
+        except Exception:
+            existing = {}
     floor_ids = find_dvd_floor_ids(); maker_ids = {}
     for maker in MAKERS:
         maker_ids[maker["id"]] = find_maker_ids(floor_ids, maker); print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
@@ -286,7 +292,12 @@ def discover():
         title = str(item.get("title") or "").strip(); release_date = str(item.get("date") or "")[:10]; code = str(item.get("maker_product") or item.get("product_id") or item.get("content_id") or "").strip(); jan = re.sub(r"\D", "", str(item.get("jancode") or item.get("jan") or ""))
         if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date): continue
         media = sample_media(item)
-        products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan, "talent": talent_names(item), "source_url": item.get("URL") or "", "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "", "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"], "sample_image_urls": media["sample_image_urls"], "sample_video_url": media["sample_video_url"], "sample_available": media["sample_available"], "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
+        old = existing.get(code, {})
+        images = media["sample_image_urls"] or old.get("sample_image_urls") or []
+        video = media["sample_video_url"] or old.get("sample_video_url") or ""
+        affiliate_url = item.get("affiliateURL") or old.get("affiliate_url") or ""
+        dmm_url = item.get("URL") or old.get("dmm_url") or ""
+        products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan or old.get("jan", ""), "talent": talent_names(item) or old.get("talent") or [], "source_url": item.get("URL") or old.get("source_url") or "", "affiliate_url": affiliate_url, "dmm_url": dmm_url, "affiliate_match_status": "matched" if affiliate_url else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"] or old.get("cover_image_url") or "", "sample_image_urls": images[:15], "sample_video_url": video, "sample_available": bool(video or old.get("sample_available")), "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
     products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
 
 
