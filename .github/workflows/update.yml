@@ -1,5 +1,8 @@
 name: auto-update
 on:
+  push:
+    paths:
+      - "scripts/refresh-affiliate.trigger"
   schedule:
     - cron: "17 18 * * *" # 03:17 JST
   workflow_dispatch:
@@ -31,6 +34,13 @@ jobs:
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
           DMM_SITE: FANZA
         run: python -m affiliate.i_one_catalog
+      - name: Enrich FANZA sample media
+        timeout-minutes: 10
+        continue-on-error: true
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
+        run: python -m affiliate.sample_enrichment
       - name: Remove duplicate limited cheki variants
         run: python scripts/dedupe_limited_variants.py
       - name: Generate static site
