@@ -43,7 +43,7 @@ def performer_candidates(p):
 def match_facts(p, i):
     raw_title = str(p.get("title") or "")
     clean_title = re.sub(r"\s*【I-ONE TV限定特典映像付き】", "", raw_title)
-    clean_title = re.sub(r"\s*[/／]\\s*4Kあり", "", clean_title)
+    clean_title = re.sub(r"\s*[/／]\s*4Kあり", "", clean_title)
     clean_title = re.sub(r"\s*4Kあり", "", clean_title).strip()
     title_variants = [norm(raw_title), norm(clean_title)]
     it = norm(i.get("title"))
