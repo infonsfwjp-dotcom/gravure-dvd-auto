@@ -41,9 +41,14 @@ def performer_candidates(p):
 
 
 def match_facts(p, i):
-    pt, it = norm(p.get("title")), norm(i.get("title"))
-    title_exact = bool(pt and it and pt == it)
-    title_partial = bool(pt and it and (pt in it or it in pt))
+    raw_title = str(p.get("title") or "")
+    clean_title = re.sub(r"\\s*【I-ONE TV限定特典映像付き】", "", raw_title)
+    clean_title = re.sub(r"\\s*[/／]\\s*4Kあり", "", clean_title)
+    clean_title = re.sub(r"\\s*4Kあり", "", clean_title).strip()
+    title_variants = [norm(raw_title), norm(clean_title)]
+    it = norm(i.get("title"))
+    title_exact = bool(it and any(v and v == it for v in title_variants))
+    title_partial = bool(it and any(v and (v in it or it in v) for v in title_variants))
     performers = [norm(x) for x in performer_candidates(p) if norm(x)]
     performer_hit = bool(performers and it and any(x in it for x in performers))
 
