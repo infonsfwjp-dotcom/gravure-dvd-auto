@@ -78,7 +78,7 @@ def extract_media(item):
 
     return {
         "cover_image_url": unique(covers, 1)[0] if covers else "",
-        "sample_image_urls": unique(images, 12),
+        "sample_image_urls": unique(images, 15),
         "sample_video_url": unique(movies, 1)[0] if movies else "",
         "sample_available": bool(movies),
     }
@@ -209,7 +209,7 @@ def public_page_media(source, base_url):
         if value:
             images.append(value)
 
-    return unique(videos, 3), unique(images, 12)
+    return unique(videos, 3), unique(images, 15)
 
 
 def filter_ione_images(images, code):
@@ -243,7 +243,7 @@ def discover_ione_sample_frames(product, session):
     if product.get("maker_id") != "i-one":
         return []
     code = str(product.get("product_code") or "").strip()
-    m = re.match(r"^(LCDV-\\d+)-\\d+$", code, re.I)
+    m = re.match(r"^(LCDV-\d+)-\d+$", code, re.I)
     if not m:
         return []
     series = m.group(1)
@@ -306,29 +306,18 @@ def ione_public_sample(product, session):
                     continue
                 if talent_l and talent_l not in normalized:
                     continue
-            if "無料サンプル動画" not in normalized and "サンプル動画" not in normalized:
-                continue
             videos, images = public_page_media(source, page_url)
             images = filter_ione_images(images, code)
 
             # Probe the official numbered sample gallery as well. The detail
-            # page often exposes only key/jacket/001 in HTML even though more
+            # page often exposes only a single frame in HTML even though more
             # product-specific sample frames are available at the same path.
-            numbered = []
-            if code:
-                prefix = code.upper()
-                bucket = prefix[:-2] if len(prefix) > 2 else prefix
-                base = f"https://file.i-one.tv/images/sample/{bucket}/{prefix}/"
-                for number in range(1, 21):
-                    image_url = f"{base}{number:03d}.jpg"
-                    try:
-                        probe = session.get(image_url, timeout=8)
-                        if probe.status_code == 200 and len(probe.content) > 1024:
-                            numbered.append(image_url)
-                    except Exception:
-                        continue
-            images = unique(numbered or images, 12)
-            if videos or images:
+            numbered = discover_ione_sample_frames(product, session)
+            images = unique(numbered or images, 15)
+            exact_code_page = bool(code and code.lower() in normalized)
+            if videos or images or exact_code_page:
+                if not videos and not images:
+                    continue
                 return {
                     "sample_video_url": videos[0] if videos else "",
                     "sample_image_urls": images,
@@ -386,7 +375,7 @@ def tokyolily_public_sample(product, session):
                 value = _abs_url(match, page_url)
                 if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
                     images.append(value)
-            images = unique(images, 12)
+            images = unique(images, 15)
             images = [x for x in images if not re.search(r"(?:logo|icon|loading|avatar|banner|button|sprite)", x, re.I)]
             if images:
                 return {"sample_image_urls": images[:12], "sample_available": bool(product.get("sample_video_url")), "sample_source_url": page_url}
@@ -536,7 +525,7 @@ def smashtv_public_sample(product, session):
                         except Exception:
                             continue
             if videos:
-                return {"sample_video_url": videos[0], "sample_image_urls": unique(images, 12), "sample_available": True, "sample_source_url": page_url}
+                return {"sample_video_url": videos[0], "sample_image_urls": unique(images, 15), "sample_available": True, "sample_source_url": page_url}
         except Exception:
             continue
     return {}
