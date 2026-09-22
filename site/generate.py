@@ -116,8 +116,10 @@ def _landscape_sample(images, remote_to_local=None):
         if not w or not h:
             continue
         ratio = w / h
-        if ratio >= 1.2:
-            score = ratio
+        # Prefer a landscape frame, including mildly horizontal 4:3 frames.
+        if ratio >= 1.15:
+            sample_bonus = 2 if "/sample/" in str(image).lower() else 0
+            score = ratio + sample_bonus
             if score > best_score:
                 best, best_score = image, score
     return best or (images[0] if images else "")
