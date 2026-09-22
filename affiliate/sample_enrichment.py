@@ -646,9 +646,9 @@ def main():
             if media["cover_image_url"]:
                 product["cover_image_url"] = media["cover_image_url"]
             if media["sample_image_urls"]:
-                product["sample_image_urls"] = media["sample_image_urls"]
+                product["sample_image_urls"] = unique((product.get("sample_image_urls") or []) + media["sample_image_urls"], 15)
             if media["sample_video_url"]:
-                product["sample_video_url"] = media["sample_video_url"]
+                product["sample_video_url"] = media["sample_video_url"] if not product.get("sample_video_url") else product["sample_video_url"]
                 product["sample_available"] = True
 
         if product.get("maker_id") == "i-one":
@@ -659,7 +659,7 @@ def main():
                     product["sample_video_url"] = media["sample_video_url"]
                 discovered = discover_ione_sample_frames(product, session)
                 if discovered:
-                    product["sample_image_urls"] = discovered
+                    product["sample_image_urls"] = unique((product.get("sample_image_urls") or []) + discovered, 15)
                 elif media.get("sample_image_urls"):
                     product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
                 product["sample_available"] = bool(product.get("sample_video_url"))
