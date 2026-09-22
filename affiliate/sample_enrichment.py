@@ -253,15 +253,17 @@ def discover_ione_sample_frames(product, session):
     base = f"https://file.i-one.tv/images/sample/{bucket}/{code}/"
     out = []
     for n in range(1, 31):
-        for ext in ("jpg", "jpeg", "png", "webp"):
-            image = f"{base}{n:03d}.{ext}"
-            try:
-                response = session.get(image, timeout=8)
-                if response.status_code == 200 and len(response.content) > 1024:
-                    out.append(image)
+        # I-ONE's numbered gallery is served as JPEGs. Keep probing narrow and
+        # predictable so enrichment remains fast across the whole catalog.
+        image = f"{base}{n:03d}.jpg"
+        try:
+            response = session.get(image, timeout=8)
+            if response.status_code == 200 and len(response.content) > 1024:
+                out.append(image)
+                if len(out) >= 15:
                     break
-            except Exception:
-                pass
+        except Exception:
+            pass
     return unique(out, 15)
 
 
@@ -647,16 +649,20 @@ def main():
         if product.get("maker_id") == "i-one":
             ione_checked += 1
             media = ione_public_sample(product, session)
-            if media.get("sample_video_url") or media.get("sample_image_urls"):
-                if media.get("sample_video_url"):
-                    product["sample_video_url"] = media["sample_video_url"]
-                discovered = discover_ione_sample_frames(product, session)
-                if discovered:
-                    product["sample_image_urls"] = unique((product.get("sample_image_urls") or []) + discovered, 15)
-                elif media.get("sample_image_urls"):
-                    product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
+            if media.get("sample_video_url"):
+                product["sample_video_url"] = media["sample_video_url"]
+            # Probe the product-specific numbered gallery independently of
+            # HTML media detection. Some I-ONE detail pages expose no <img>
+            # tags even though the official sample frames are available.
+            discovered = discover_ione_sample_frames(product, session)
+            if discovered:
+                product["sample_image_urls"] = unique((product.get("sample_image_urls") or []) + discovered, 15)
+            elif media.get("sample_image_urls"):
+                product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
+            if media.get("sample_video_url") or media.get("sample_image_urls") or discovered:
                 product["sample_available"] = bool(product.get("sample_video_url"))
-                product["sample_source_url"] = media.get("sample_source_url", "")
+                if media.get("sample_source_url"):
+                    product["sample_source_url"] = media["sample_source_url"]
                 ione_changed += 1
             if not product.get("sample_image_urls"):
                 lily = tokyolily_public_sample(product, session)
