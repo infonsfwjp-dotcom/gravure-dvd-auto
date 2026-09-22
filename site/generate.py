@@ -296,7 +296,7 @@ def main():
 
     for p in ps:
         rel = product_path(p).lstrip("/")
-                write(rel, display_title(p.get("title") or "グラビアDVD"), product_page(p), f'{display_title(p.get("title") or "グラビアDVD")}｜発売日 {p.get("release_date","")}｜{display_maker(p.get("maker") or "")} のグラビアDVD情報')
+        write(rel, display_title(p.get("title") or "グラビアDVD"), product_page(p), f'{display_title(p.get("title") or "グラビアDVD")}｜発売日 {p.get("release_date","")}｜{display_maker(p.get("maker") or "")} のグラビアDVD情報')
 
     latest = sorted(ps, key=lambda x: x.get("release_date") or "", reverse=True)[:50]
     write("index.html", "グラビアDVD新発売情報", '<h2>最新発売情報</h2><div class="grid">' + ''.join(card(p) for p in latest) + f'</div><p class="muted">登録商品数：{len(ps)}</p>')
