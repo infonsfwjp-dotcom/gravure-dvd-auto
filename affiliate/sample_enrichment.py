@@ -258,7 +258,7 @@ def discover_ione_sample_frames(product, session):
                     break
             except Exception:
                 pass
-    return unique(out, 30)
+    return unique(out, 15)
 
 
 def ione_public_sample(product, session):
