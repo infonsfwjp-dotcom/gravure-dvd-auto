@@ -246,6 +246,7 @@ def discover_ione_sample_frames(product, session):
     if not re.fullmatch(r"LCDV-\d+", code, re.I):
         return []
     # I-ONE stores LCDV-41450 as:
+    # Probe this path during enrichment so other product pages receive the same treatment.
     # /images/sample/LCDV-414/LCDV-41450/001.jpg
     # i.e. the bucket is the product code with its final two digits removed.
     bucket = code[:-2]
