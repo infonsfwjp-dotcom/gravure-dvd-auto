@@ -303,6 +303,30 @@ def discover():
         affiliate_url = item.get("affiliateURL") or old.get("affiliate_url") or ""
         dmm_url = item.get("URL") or old.get("dmm_url") or ""
         products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan or old.get("jan", ""), "talent": talent_names(item) or old.get("talent") or [], "source_url": item.get("URL") or old.get("source_url") or "", "affiliate_url": affiliate_url, "dmm_url": dmm_url, "affiliate_match_status": "matched" if affiliate_url else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"] or old.get("cover_image_url") or "", "sample_image_urls": images[:15], "sample_video_url": video, "sample_available": bool(video or old.get("sample_available")), "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
+    # Preserve already-known current products when a transient DMM discovery miss occurs.
+    # This prevents working FANZA/media/JAN data from disappearing merely because the API
+    # omitted an item in a particular run.
+    known_codes = {re.sub(r"[^a-z0-9]", "", str(p.get("product_code") or "").lower()) for p in products if p.get("product_code")}
+    maker_ids_allowed = {m["id"] for m in MAKERS}
+    for old in existing.values():
+        old_code = re.sub(r"[^a-z0-9]", "", str(old.get("product_code") or "").lower())
+        if not old_code or old_code in known_codes:
+            continue
+        if old.get("maker_id") not in maker_ids_allowed:
+            continue
+        release = str(old.get("release_date") or "")[:10]
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release):
+            continue
+        try:
+            release_dt = date.fromisoformat(release)
+        except ValueError:
+            continue
+        if start <= release_dt <= end:
+            preserved = dict(old)
+            preserved["sample_image_urls"] = list(preserved.get("sample_image_urls") or [])[:15]
+            products.append(preserved)
+            known_codes.add(old_code)
+            print(f"  preserved existing product after DMM miss code={old.get('product_code')} title={old.get('title','')}")
     products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
 
 
