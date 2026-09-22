@@ -253,10 +253,9 @@ def enrich():
                 print(diagnostic_line(p, ranked))
                 diagnostics += 1
             if not ranked:
-                p["affiliate_match_status"] = "not_found"
-                if not p.get("affiliate_url"):
-                    p.pop("affiliate_url", None)
-                    p.pop("dmm_url", None)
+                # Never erase a previously verified FANZA/DMM link because a single
+                # API run returned no candidates.
+                p["affiliate_match_status"] = "matched" if p.get("affiliate_url") else "not_found"
                 not_found += 1
                 continue
 
@@ -277,15 +276,16 @@ def enrich():
                 p["affiliate_match_status"] = "matched"
                 matched += 1
             elif s >= 45:
-                p["affiliate_match_status"] = "review"
-                if not p.get("affiliate_url"):
-                    p.pop("affiliate_url", None)
-                    p.pop("dmm_url", None)
+                if p.get("affiliate_url"):
+                    p["affiliate_match_status"] = "matched"
+                else:
+                    p["affiliate_match_status"] = "review"
                 review += 1
             else:
-                p["affiliate_match_status"] = "unmatched"
-                p.pop("affiliate_url", None)
-                p.pop("dmm_url", None)
+                if p.get("affiliate_url"):
+                    p["affiliate_match_status"] = "matched"
+                else:
+                    p["affiliate_match_status"] = "unmatched"
                 review += 1
         except Exception as e:
             p["affiliate_match_status"] = "error"
