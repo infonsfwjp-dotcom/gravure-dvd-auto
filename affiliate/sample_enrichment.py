@@ -242,15 +242,18 @@ def discover_ione_sample_frames(product, session):
     """Probe the official numbered I-ONE sample-frame directory."""
     if product.get("maker_id") != "i-one":
         return []
-    code = str(product.get("product_code") or "").strip()
-    m = re.match(r"^(LCDV-\d+)-\d+$", code, re.I)
-    if not m:
+    code = str(product.get("product_code") or "").strip().upper()
+    if not re.fullmatch(r"LCDV-\d+", code, re.I):
         return []
-    series = m.group(1)
+    # I-ONE stores LCDV-41450 as:
+    # /images/sample/LCDV-414/LCDV-41450/001.jpg
+    # i.e. the bucket is the product code with its final two digits removed.
+    bucket = code[:-2]
+    base = f"https://file.i-one.tv/images/sample/{bucket}/{code}/"
     out = []
     for n in range(1, 31):
         for ext in ("jpg", "jpeg", "png", "webp"):
-            image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.{ext}"
+            image = f"{base}{n:03d}.{ext}"
             try:
                 response = session.get(image, timeout=8)
                 if response.status_code == 200 and len(response.content) > 1024:
