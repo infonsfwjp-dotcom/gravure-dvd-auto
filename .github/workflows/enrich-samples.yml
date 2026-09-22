@@ -1,6 +1,7 @@
 name: enrich-samples
 
 on:
+  # Rebuild after media restoration/fixes.
   push:
     branches: [main]
     paths-ignore:
