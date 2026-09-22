@@ -255,9 +255,11 @@ def discover():
     if not API_ID or not AFFILIATE_ID: raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
     today = date.today(); start = today - timedelta(days=30); end = today + timedelta(days=180); all_items = {}
     existing = {}
+    existing_by_norm_code = {}
     if OUT.exists():
         try:
             existing = {str(p.get("product_code") or "").strip(): p for p in json.loads(OUT.read_text(encoding="utf-8")) if p.get("product_code")}
+            existing_by_norm_code = {re.sub(r"[^a-z0-9]", "", k.lower()): v for k, v in existing.items() if k}
         except Exception:
             existing = {}
     floor_ids = find_dvd_floor_ids(); maker_ids = {}
@@ -292,7 +294,7 @@ def discover():
         title = str(item.get("title") or "").strip(); release_date = str(item.get("date") or "")[:10]; code = str(item.get("maker_product") or item.get("product_id") or item.get("content_id") or "").strip(); jan = re.sub(r"\D", "", str(item.get("jancode") or item.get("jan") or ""))
         if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date): continue
         media = sample_media(item)
-        old = existing.get(code, {})
+        old = existing.get(code, {}) or existing_by_norm_code.get(re.sub(r"[^a-z0-9]", "", code.lower()), {})
         images = media["sample_image_urls"] or old.get("sample_image_urls") or []
         video = media["sample_video_url"] or old.get("sample_video_url") or ""
         affiliate_url = item.get("affiliateURL") or old.get("affiliate_url") or ""
