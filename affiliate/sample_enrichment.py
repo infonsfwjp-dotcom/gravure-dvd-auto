@@ -78,7 +78,7 @@ def extract_media(item):
 
     return {
         "cover_image_url": unique(covers, 1)[0] if covers else "",
-        "sample_image_urls": unique(images),
+        "sample_image_urls": unique(images, 12),
         "sample_video_url": unique(movies, 1)[0] if movies else "",
         "sample_available": bool(movies),
     }
@@ -178,14 +178,17 @@ def _abs_url(value, base):
 
 
 def public_page_media(source, base_url):
-    source = html.unescape(source).replace("\\/","/")
+    source = html.unescape(source).replace("\\/", "/")
     videos = []
+
+    # I-ONE may place the sample MP4 URL in inline JavaScript rather than a
+    # literal <video>/<source> element. Capture both forms.
     patterns = (
-        r'<(?:video|source)[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
-        r'<iframe[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
-        r'<embed[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
-        r'https?://(?:www\\.)?(?:youtube\\.com/embed/|youtu\\.be/)[^"\\'<> ]+',
-        r'https?://[^"\\'<> ]+\\.(?:mp4|m3u8)(?:\\?[^"\\'<> ]*)?',
+        r'<(?:video|source)[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
+        r'<iframe[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
+        r'<embed[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
+        r'https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^"\'<> ]+',
+        r'https?://[^"\'<> ]+\.(?:mp4|m3u8)(?:\?[^"\'<> ]*)?',
     )
     for pattern in patterns:
         for match in re.findall(pattern, source, re.I):
@@ -195,23 +198,18 @@ def public_page_media(source, base_url):
                 videos.append(value)
 
     images = []
-    # Capture every common lazy-loading attribute, not just src.
-    for match in re.findall(
-        r'<(?:img|a)[^>]+(?:src|data-src|data-original|data-lazy-src|href)=["\\']([^"\\']+)["\\']',
-        source, re.I
-    ):
+    for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
         value = _abs_url(match, base_url)
-        if value and re.search(r'\\.(?:jpe?g|png|webp)(?:\\?|$)', value, re.I):
+        if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
             images.append(value)
 
-    # Also extract sample image URLs embedded in JSON/JS attributes.
-    for match in re.findall(
-        r'https?://[^"\\'<> ]+/images/sample/[^"\\'<> ]+?\\.(?:jpe?g|png|webp)(?:\\?[^"\\'<> ]*)?',
-        source, re.I
-    ):
-        images.append(_abs_url(match, base_url))
+    # Some pages expose image URLs only inside JSON/JS data.
+    for match in re.findall(r'https?://[^"\'<> ]+\.(?:jpe?g|png|webp)(?:\?[^"\'<> ]*)?', source, re.I):
+        value = _abs_url(match, base_url)
+        if value:
+            images.append(value)
 
-    return unique(videos, 3), unique(images)
+    return unique(videos, 3), unique(images, 12)
 
 
 def filter_ione_images(images, code):
@@ -239,35 +237,29 @@ def filter_ione_images(images, code):
         if "/images/sample/" in path:
             kept.append(value)
             continue
-    return unique(kept)
+    return unique(kept, 12)
 def discover_ione_sample_frames(product, session):
-    """Last-resort expansion of an official I-ONE numbered sample gallery."""
+    """Probe the official numbered I-ONE sample-frame directory."""
     if product.get("maker_id") != "i-one":
         return []
     code = str(product.get("product_code") or "").strip()
-    m = re.match(r"^(LCDV)-(\d+)$", code, re.I)
+    m = re.match(r"^(LCDV-\\d+)-\\d+$", code, re.I)
     if not m:
         return []
-    series = f"{m.group(1)}-{m.group(2)[:2]}"
+    series = m.group(1)
     out = []
-    misses = 0
-    # This is deliberately bounded: FANZA/DMM remains the primary source.
     for n in range(1, 31):
-        image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.jpg"
-        try:
-            response = session.get(image, timeout=2)
-            if response.status_code == 200 and len(response.content) > 1024:
-                out.append(image)
-                misses = 0
-            else:
-                misses += 1
-                if misses >= 3:
+        for ext in ("jpg", "jpeg", "png", "webp"):
+            image = f"https://file.i-one.tv/images/sample/{series}/{code}/{n:03d}.{ext}"
+            try:
+                response = session.get(image, timeout=8)
+                if response.status_code == 200 and len(response.content) > 1024:
+                    out.append(image)
                     break
-        except Exception:
-            misses += 1
-            if misses >= 3:
-                break
-    return unique(out)
+            except Exception:
+                pass
+    return unique(out, 30)
+
 
 def ione_public_sample(product, session):
     if product.get("maker_id") != "i-one":
@@ -325,23 +317,17 @@ def ione_public_sample(product, session):
             numbered = []
             if code:
                 prefix = code.upper()
-                digits = prefix.split("-", 1)[1] if "-" in prefix else ""
-                bucket = f"LCDV-{digits[:2]}" if digits else prefix
+                bucket = prefix[:-2] if len(prefix) > 2 else prefix
                 base = f"https://file.i-one.tv/images/sample/{bucket}/{prefix}/"
-                for number in range(1, 31):
+                for number in range(1, 21):
                     image_url = f"{base}{number:03d}.jpg"
                     try:
-                        probe = session.get(image_url, timeout=3)
+                        probe = session.get(image_url, timeout=8)
                         if probe.status_code == 200 and len(probe.content) > 1024:
                             numbered.append(image_url)
                     except Exception:
                         continue
-            images = unique(numbered or images, 15)
-            # If the official page exposes only a single frame, keep probing
-            # contiguous frames even when the first probe sequence stopped early.
-            if len(images) < 2 and code:
-                extra = discover_ione_sample_frames(product, session)
-                images = unique(images + extra, 30)
+            images = unique(numbered or images, 12)
             if videos or images:
                 return {
                     "sample_video_url": videos[0] if videos else "",
@@ -400,7 +386,7 @@ def tokyolily_public_sample(product, session):
                 value = _abs_url(match, page_url)
                 if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
                     images.append(value)
-            images = unique(images)
+            images = unique(images, 12)
             images = [x for x in images if not re.search(r"(?:logo|icon|loading|avatar|banner|button|sprite)", x, re.I)]
             if images:
                 return {"sample_image_urls": images[:12], "sample_available": bool(product.get("sample_video_url")), "sample_source_url": page_url}
@@ -550,7 +536,7 @@ def smashtv_public_sample(product, session):
                         except Exception:
                             continue
             if videos:
-                return {"sample_video_url": videos[0], "sample_image_urls": unique(images), "sample_available": True, "sample_source_url": page_url}
+                return {"sample_video_url": videos[0], "sample_image_urls": unique(images, 12), "sample_available": True, "sample_source_url": page_url}
         except Exception:
             continue
     return {}
@@ -637,6 +623,8 @@ def main():
 
     for product in products:
         clear_stale_takeshobo_sample(product)
+        if product.get("sample_available") and product.get("sample_video_url") and product.get("maker_id") != "i-one":
+            continue
         try:
             release = date.fromisoformat(str(product.get("release_date") or ""))
         except ValueError:
@@ -651,9 +639,6 @@ def main():
             product.get("sample_available"),
         )
 
-        # FANZA/DMM is the primary source for every maker, including I-ONE.
-        # Official maker sites are used only as a fallback when FANZA/DMM has
-        # no sample media for an otherwise matched product.
         item = fanza_search(product, session)
         checked += 1
         if item:
@@ -661,35 +646,25 @@ def main():
             if media["cover_image_url"]:
                 product["cover_image_url"] = media["cover_image_url"]
             if media["sample_image_urls"]:
-                product["sample_image_urls"] = unique(media["sample_image_urls"])
+                product["sample_image_urls"] = media["sample_image_urls"]
             if media["sample_video_url"]:
                 product["sample_video_url"] = media["sample_video_url"]
                 product["sample_available"] = True
 
         if product.get("maker_id") == "i-one":
             ione_checked += 1
-            # Only supplement from official I-ONE when FANZA/DMM did not
-            # provide the needed sample media.
-            if not product.get("sample_video_url") or not product.get("sample_image_urls"):
-                media = ione_public_sample(product, session)
-                if not product.get("sample_video_url") and media.get("sample_video_url"):
+            media = ione_public_sample(product, session)
+            if media.get("sample_video_url") or media.get("sample_image_urls"):
+                if media.get("sample_video_url"):
                     product["sample_video_url"] = media["sample_video_url"]
-                if not product.get("sample_image_urls") and media.get("sample_image_urls"):
-                    product["sample_image_urls"] = filter_ione_images(
-                        media["sample_image_urls"], product.get("product_code")
-                    )
-                if product.get("sample_video_url") or product.get("sample_image_urls"):
-                    product["sample_available"] = bool(product.get("sample_video_url"))
-                    product["sample_source_url"] = media.get("sample_source_url", "")
-                    ione_changed += 1
-
-            # If the official page exposes only one thumbnail, expand the
-            # official numbered gallery as a last-resort supplement.
-            if len(product.get("sample_image_urls") or []) < 2:
                 discovered = discover_ione_sample_frames(product, session)
                 if discovered:
                     product["sample_image_urls"] = discovered
-
+                elif media.get("sample_image_urls"):
+                    product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
+                product["sample_available"] = bool(product.get("sample_video_url"))
+                product["sample_source_url"] = media.get("sample_source_url", "")
+                ione_changed += 1
             if not product.get("sample_image_urls"):
                 lily = tokyolily_public_sample(product, session)
                 if lily.get("sample_image_urls"):
@@ -724,7 +699,7 @@ def main():
         )
         if before != after:
             changed += 1
-        time.sleep(0.05)
+        time.sleep(0.10)
 
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
@@ -732,6 +707,7 @@ def main():
         f"public_ione_checked={ione_checked} public_ione_changed={ione_changed} "
         f"public_takeshobo_checked={takeshobo_checked} public_takeshobo_changed={takeshobo_changed}"
     )
+
 
 if __name__ == "__main__":
     main()
