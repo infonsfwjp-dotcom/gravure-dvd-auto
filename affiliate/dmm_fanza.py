@@ -98,6 +98,11 @@ def search_keywords(p):
     add(code_normalized)
     add(title_raw)
     add(norm(title_raw))
+    clean_title = re.sub(r"\s*【I-ONE TV限定特典映像付き】", "", title_raw)
+    clean_title = re.sub(r"\s*[/／]\s*4Kあり", "", clean_title)
+    clean_title = re.sub(r"\s*4Kあり", "", clean_title).strip()
+    add(clean_title)
+    add(norm(clean_title))
     for performer in performer_candidates(p):
         add(performer)
         add(norm(performer))
@@ -208,8 +213,9 @@ def enrich():
                 diagnostics += 1
             if not ranked:
                 p["affiliate_match_status"] = "not_found"
-                p.pop("affiliate_url", None)
-                p.pop("dmm_url", None)
+                if not p.get("affiliate_url"):
+                    p.pop("affiliate_url", None)
+                    p.pop("dmm_url", None)
                 not_found += 1
                 continue
 
@@ -231,8 +237,9 @@ def enrich():
                 matched += 1
             elif s >= 45:
                 p["affiliate_match_status"] = "review"
-                p.pop("affiliate_url", None)
-                p.pop("dmm_url", None)
+                if not p.get("affiliate_url"):
+                    p.pop("affiliate_url", None)
+                    p.pop("dmm_url", None)
                 review += 1
             else:
                 p["affiliate_match_status"] = "unmatched"
