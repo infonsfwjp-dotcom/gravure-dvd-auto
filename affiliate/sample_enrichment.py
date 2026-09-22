@@ -237,7 +237,7 @@ def filter_ione_images(images, code):
         if "/images/sample/" in path:
             kept.append(value)
             continue
-    return unique(kept, 12)
+    return unique(kept, 15)
 def discover_ione_sample_frames(product, session):
     """Probe the official numbered I-ONE sample-frame directory."""
     if product.get("maker_id") != "i-one":
