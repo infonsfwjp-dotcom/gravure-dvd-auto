@@ -106,10 +106,12 @@ def _landscape_sample(images, remote_to_local=None):
     best = None
     best_score = -1
     for image in images or []:
-        local = remote_to_local(image) if remote_to_local else image
+        local = image
+        if str(image).startswith(("http://", "https://")):
+            local = remote_to_local(image) if remote_to_local else image
         if not local:
             continue
-        path = DIST / local.lstrip("/") if str(local).startswith("/") else Path(local)
+        path = DIST / str(local).lstrip("/") if str(local).startswith("/") else Path(local)
         w, h = _image_size(path)
         if not w or not h:
             continue
@@ -193,9 +195,25 @@ def original_review(p, has_sample, has_images=False):
             "当サイトでは公開サンプルから確認できる範囲に絞って、作品選びの参考になるポイントを簡潔にまとめています。")
 
 
+def display_title(value):
+    """Hide FANZA/manufacturer marketing suffixes that are not needed on this site."""
+    title = str(value or "")
+    title = re.sub(r"\\s*【I-ONE TV限定特典映像付き】", "", title)
+    title = re.sub(r"\\s*[/／]\\s*4Kあり", "", title)
+    title = re.sub(r"\\s*4Kあり", "", title)
+    return title.strip()
+
+
+def display_maker(value):
+    maker = str(value or "")
+    if maker == "ラインコミュニケーションズ / I-ONE":
+        return "ラインコミュニケーションズ"
+    return maker
+
+
 def product_page(p):
-    title = str(p.get("title") or "グラビアDVD")
-    maker = str(p.get("maker") or "")
+    title = display_title(p.get("title") or "グラビアDVD")
+    maker = display_maker(p.get("maker") or "")
     talent = "、".join(p.get("talent") or [])
     release = str(p.get("release_date") or "")
     source = str(p.get("source_url") or "")
@@ -247,8 +265,7 @@ def product_page(p):
             ("メーカー", maker),
             ("出演", talent),
             ("発売日", release),
-            ("品番", str(p.get("product_code") or "")),
-            ("JAN", str(p.get("jan") or "")),
+            
         ):
             if value:
                 info_rows.append(f"<tr><th>{esc(label)}</th><td>{esc(value)}</td></tr>")
