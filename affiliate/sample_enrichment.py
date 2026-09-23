@@ -211,9 +211,9 @@ def public_page_media(source, base_url):
     # I-ONE exposes many sample frames through clickable <a href> links,
     # while the thumbnail itself can be lazy-loaded. Capture the actual
     # product-specific sample URL from the link as well.
-    for match in re.findall(r'<a[^>]+(?:href|data-href)=["\\']([^"\\']+)["\\']', source, re.I):
+    for match in re.findall(r"""<a[^>]+(?:href|data-href)=["']([^"']+)["']""", source, re.I):
         value = _abs_url(match, base_url)
-        if value and "/images/sample/" in value and re.search(r"\\.(?:jpe?g|png|webp)(?:\\?|$)", value, re.I):
+        if value and "/images/sample/" in value and re.search(r"""\.(?:jpe?g|png|webp)(?:\?|$)""", value, re.I):
             images.append(value)
 
     # Some pages expose image URLs only inside JSON/JS data.
