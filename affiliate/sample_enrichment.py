@@ -184,15 +184,12 @@ def _abs_url(value, base):
 def public_page_media(source, base_url):
     source = html.unescape(source).replace("\\/", "/")
     videos = []
-
-    # I-ONE may place the sample MP4 URL in inline JavaScript rather than a
-    # literal <video>/<source> element. Capture both forms.
     patterns = (
-        r'<(?:video|source)[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
-        r'<iframe[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
-        r'<embed[^>]+(?:src|data-src)=["\']([^"\']+)["\']',
-        r'https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^"\'<> ]+',
-        r'https?://[^"\'<> ]+\.(?:mp4|m3u8)(?:\?[^"\'<> ]*)?',
+        r'<(?:video|source)[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+        r'<iframe[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+        r'<embed[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+        r'https?://(?:www\\.)?(?:youtube\\.com/embed/|youtu\\.be/)[^"\\'<> ]+',
+        r'https?://[^"\\'<> ]+\\.(?:mp4|m3u8)(?:\\?[^"\\'<> ]*)?',
     )
     for pattern in patterns:
         for match in re.findall(pattern, source, re.I):
@@ -200,27 +197,15 @@ def public_page_media(source, base_url):
             value = _abs_url(value, base_url)
             if value:
                 videos.append(value)
-
     images = []
-    for match in re.findall(r'<img[^>]+(?:src|data-src)=["\']([^"\']+)["\']', source, re.I):
+    for match in re.findall(r'<img[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']', source, re.I):
         value = _abs_url(match, base_url)
-        if value and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", value, re.I):
+        if value and re.search(r"\\.(?:jpe?g|png|webp)(?:\\?|$)", value, re.I):
             images.append(value)
-
-    # I-ONE exposes many sample frames through clickable <a href> links,
-    # while the thumbnail itself can be lazy-loaded. Capture the actual
-    # product-specific sample URL from the link as well.
-    for match in re.findall(r"""<a[^>]+(?:href|data-href)=["']([^"']+)["']""", source, re.I):
-        value = _abs_url(match, base_url)
-        if value and "/images/sample/" in value and re.search(r"""\.(?:jpe?g|png|webp)(?:\?|$)""", value, re.I):
-            images.append(value)
-
-    # Some pages expose image URLs only inside JSON/JS data.
-    for match in re.findall(r'https?://[^"\'<> ]+\.(?:jpe?g|png|webp)(?:\?[^"\'<> ]*)?', source, re.I):
+    for match in re.findall(r'https?://[^"\\'<> ]+\\.(?:jpe?g|png|webp)(?:\\?[^"\\'<> ]*)?', source, re.I):
         value = _abs_url(match, base_url)
         if value:
             images.append(value)
-
     return unique(videos, 3), unique(images, 15)
 
 
@@ -450,8 +435,6 @@ def main():
     session = requests.Session()
     session.headers.update({"User-Agent": "gravure-dvd-auto/1.0"})
 
-    # Process I-ONE first so their FANZA-first lookup plus official fallback
-    # completes even when the global enrichment job is time-constrained.
     worklist = products
     for product in worklist:
         clear_stale_takeshobo_sample(product)
@@ -483,11 +466,6 @@ def main():
                 product["sample_video_url"] = media["sample_video_url"] if not product.get("sample_video_url") else product["sample_video_url"]
                 product["sample_available"] = True
 
-                if not product.get("sample_image_urls"):
-                lily = tokyolily_public_sample(product, session)
-                if lily.get("sample_image_urls"):
-                    product["sample_image_urls"] = lily["sample_image_urls"]
-                    product["sample_source_url"] = lily.get("sample_source_url", "")
 
         if not product.get("sample_video_url") and not product.get("sample_image_urls") and product.get("maker_id") == "spice_visual":
             media = smashtv_public_sample(product, session)
