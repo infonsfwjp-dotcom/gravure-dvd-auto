@@ -624,14 +624,13 @@ def main():
     products = json.loads(DATA.read_text(encoding="utf-8"))
     today = date.today()
     changed = checked = 0
-    ione_checked = ione_changed = 0
     takeshobo_checked = takeshobo_changed = 0
     session = requests.Session()
     session.headers.update({"User-Agent": "gravure-dvd-auto/1.0"})
 
     # Process I-ONE first so their FANZA-first lookup plus official fallback
     # completes even when the global enrichment job is time-constrained.
-    worklist = sorted(products, key=lambda p: 0 if p.get("maker_id") == "i-one" else 1)
+    worklist = products
     for product in worklist:
         clear_stale_takeshobo_sample(product)
         if product.get("sample_available") and product.get("sample_video_url") and product.get("maker_id") != "i-one":
@@ -662,27 +661,7 @@ def main():
                 product["sample_video_url"] = media["sample_video_url"] if not product.get("sample_video_url") else product["sample_video_url"]
                 product["sample_available"] = True
 
-        if product.get("maker_id") == "i-one":
-            ione_checked += 1
-            media = ione_public_sample(product, session)
-            if media.get("sample_video_url"):
-                product["sample_video_url"] = media["sample_video_url"]
-            # Probe the product-specific numbered gallery independently of
-            # HTML media detection. Some I-ONE detail pages expose no <img>
-            # tags even though the official sample frames are available.
-            discovered = []
-            if not product.get("sample_image_urls"):
-                discovered = discover_ione_sample_frames(product, session)
-            if discovered:
-                product["sample_image_urls"] = unique((product.get("sample_image_urls") or []) + discovered, 15)
-            elif media.get("sample_image_urls"):
-                product["sample_image_urls"] = filter_ione_images(media["sample_image_urls"], product.get("product_code"))
-            if media.get("sample_video_url") or media.get("sample_image_urls") or discovered:
-                product["sample_available"] = bool(product.get("sample_video_url"))
-                if media.get("sample_source_url"):
-                    product["sample_source_url"] = media["sample_source_url"]
-                ione_changed += 1
-            if not product.get("sample_image_urls"):
+                if not product.get("sample_image_urls"):
                 lily = tokyolily_public_sample(product, session)
                 if lily.get("sample_image_urls"):
                     product["sample_image_urls"] = lily["sample_image_urls"]
@@ -721,7 +700,6 @@ def main():
     DATA.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
         f"sample enrichment checked={checked} changed={changed} "
-        f"public_ione_checked={ione_checked} public_ione_changed={ione_changed} "
         f"public_takeshobo_checked={takeshobo_checked} public_takeshobo_changed={takeshobo_changed}"
     )
 
