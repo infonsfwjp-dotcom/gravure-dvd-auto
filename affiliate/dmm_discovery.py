@@ -236,13 +236,35 @@ def discover():
                     else: params["keyword"] = keyword
                     items = request_items(params); print(f"  query maker={maker['id']} keyword={keyword or '-'} maker_id={maker_id or '-'} offset={offset} stock={params.get('mono_stock','all')} items={len(items)}")
                     for item in items:
-                        if not maker_matches(item, maker, search_keyword=keyword): continue
+                        # A confirmed FANZA maker facet is authoritative. In particular,
+                        # Line Communications (maker id 60091) must not depend on the
+                        # maker name being echoed in the API item payload.
+                        confirmed_maker = maker["id"] == "i-one" and str(maker_id or "") in set(KNOWN_DMM_MAKER_IDS.values())
+                        if not confirmed_maker and not maker_matches(item, maker, search_keyword=keyword): continue
                         if maker["strict_idol"] and not is_takeshobo_idol(item): continue
                         key = item.get("product_id") or item.get("content_id") or item.get("URL")
                         if key: all_items[(maker["id"], key)] = (maker, item)
                     if len(items) < 100: break
                     offset += 100; time.sleep(0.1)
                 time.sleep(0.2)
+            # Some FANZA maker facets return no rows when combined with the
+            # release-date window. Retry the confirmed Line Communications maker
+            # IDs without the date filter; the product date is validated below.
+            if maker["id"] == "i-one":
+                for maker_id in ids:
+                    if maker_id not in set(KNOWN_DMM_MAKER_IDS.values()):
+                        continue
+                    offset = 1
+                    while offset <= 5000:
+                        params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "sort": "date", "hits": 100, "offset": offset, "output": "json", "article": "maker", "article_id": maker_id}
+                        items = request_items(params)
+                        print(f"  query maker={maker['id']} keyword=- maker_id={maker_id} offset={offset} stock=any_date items={len(items)}")
+                        for item in items:
+                            key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                            if key: all_items[(maker["id"], key)] = (maker, item)
+                        if len(items) < 100: break
+                        offset += 100
+                    time.sleep(0.2)
             cursor = window_end + timedelta(days=1)
     products = []
     for maker, item in all_items.values():
