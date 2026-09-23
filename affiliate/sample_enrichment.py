@@ -265,12 +265,12 @@ def discover_ione_sample_frames(product, session):
     bucket = m.group(1)
     base = f"https://file.i-one.tv/images/sample/{bucket}/{code}/"
     out = []
-    for n in range(1, 31):
+    for n in range(1, 16):
         # I-ONE's numbered gallery is served as JPEGs. Keep probing narrow and
         # predictable so enrichment remains fast across the whole catalog.
         image = f"{base}{n:03d}.jpg"
         try:
-            response = session.get(image, timeout=8)
+            response = session.get(image, timeout=3)
             if response.status_code == 200 and len(response.content) > 1024:
                 out.append(image)
                 if len(out) >= 15:
@@ -296,7 +296,7 @@ def ione_public_sample(product, session):
         if not query:
             continue
         try:
-            response = session.get(IONE_TV + "content/", params={"s": query}, timeout=15)
+            response = session.get(IONE_TV + "content/", params={"s": query}, timeout=8)
             if response.status_code < 400:
                 candidates.extend(
                     urljoin(IONE_TV, html.unescape(x))
@@ -313,7 +313,7 @@ def ione_public_sample(product, session):
             continue
         seen.add(page_url)
         try:
-            response = session.get(page_url, timeout=15)
+            response = session.get(page_url, timeout=8)
             if response.status_code >= 400:
                 continue
             source = response.text
@@ -670,7 +670,9 @@ def main():
             # Probe the product-specific numbered gallery independently of
             # HTML media detection. Some I-ONE detail pages expose no <img>
             # tags even though the official sample frames are available.
-            discovered = discover_ione_sample_frames(product, session)
+            discovered = []
+            if not product.get("sample_image_urls"):
+                discovered = discover_ione_sample_frames(product, session)
             if discovered:
                 product["sample_image_urls"] = unique((product.get("sample_image_urls") or []) + discovered, 15)
             elif media.get("sample_image_urls"):
