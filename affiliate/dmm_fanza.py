@@ -5,8 +5,6 @@ import re
 import time
 from pathlib import Path
 import requests
-from bs4 import BeautifulSoup
-from urllib.parse import unquote, urlparse, parse_qs
 
 API_URL = os.getenv("DMM_API_URL", "https://api.dmm.com/affiliate/v3/ItemList")
 API_ID = os.getenv("DMM_API_ID", "")
@@ -137,40 +135,6 @@ def search_keywords(p):
     return keywords
 
 
-def official_cids(source_url):
-    if not source_url:
-        return []
-    try:
-        r = requests.get(source_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-    except requests.RequestException:
-        return []
-    soup = BeautifulSoup(r.text, "html.parser")
-    found = []
-    for a in soup.find_all("a", href=True):
-        href = unquote(unquote(a.get("href", "")))
-        if "dmm" not in href.lower() and "fanza" not in href.lower():
-            continue
-        for m in re.finditer(r"/(?:mono/dvd|digital/videoa)/-/detail/=/cid=([a-zA-Z0-9_-]+)", href, re.I):
-            cid = m.group(1).lower()
-            if cid not in found: found.append(cid)
-        try:
-            for values in parse_qs(urlparse(href).query).values():
-                for value in values:
-                    for m in re.finditer(r"(?:^|[?&])cid=([a-zA-Z0-9_-]+)", unquote(unquote(value)), re.I):
-                        cid = m.group(1).lower()
-                        if cid not in found: found.append(cid)
-        except ValueError: pass
-    return found[:10]
-
-def search_official_cids(p):
-    if not API_ID or not AFFILIATE_ID: return []
-    items = []
-    for cid in official_cids(p.get("source_url")):
-        params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "cid": cid, "hits": 20, "offset": 1, "output": "json"}
-        found, _ = request_items(params)
-        items.extend(found)
-    return items
 def request_items(params):
     r = requests.get(API_URL, params=params, timeout=30)
     if r.status_code >= 400:
@@ -208,6 +172,8 @@ def search(p):
         for reserve in ([False, True] if p.get("maker_id") == "i-one" else [False]):
             params = dict(base)
             params.update({"keyword": keyword, "sort": "match"})
+            if p.get("maker_id") == "i-one":
+                params.update({"article": "maker", "article_id": "60091"})
             if reserve:
                 params["mono_stock"] = "reserve"
             items, error = request_items(params)
@@ -233,6 +199,8 @@ def search(p):
             "lte_date": date_end,
             "sort": "date",
         })
+        if p.get("maker_id") == "i-one":
+            params.update({"article": "maker", "article_id": "60091"})
         if p.get("maker_id") == "i-one":
             params["mono_stock"] = "reserve"
         items, error = request_items(params)
@@ -273,7 +241,7 @@ def enrich():
     for p in products:
         p.pop("affiliate_error", None)
         try:
-            ranked = sorted(((score(p, i), i) for i in (search_official_cids(p) + search(p))), key=lambda x: x[0], reverse=True)
+            ranked = sorted(((score(p, i), i) for i in (search(p))), key=lambda x: x[0], reverse=True)
             if diagnostics < 10:
                 print(diagnostic_line(p, ranked))
                 diagnostics += 1
