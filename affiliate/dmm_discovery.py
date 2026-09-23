@@ -168,7 +168,7 @@ def find_maker_ids(floor_ids, maker):
         time.sleep(0.1)
     if not found and maker["id"] in KNOWN_DMM_MAKER_IDS:
         found[KNOWN_DMM_MAKER_IDS[maker["id"]]] = maker["name"]
-        print(f"  using known DMM maker id {maker[\"id\"]}: {KNOWN_DMM_MAKER_IDS[maker[\"id\"]]}")
+        print(f"  using known DMM maker id {maker['id']}: {KNOWN_DMM_MAKER_IDS[maker['id']]}")
     return found
 
 
