@@ -126,7 +126,12 @@ def fanza_search(product, session):
         terms.append({"cid": cid})
     if code:
         terms.append({"keyword": code})
-    if title and talent:
+    if product.get("maker_id") == "i-one":
+        # I-ONE products are code-addressable on FANZA. Keep FANZA first,
+        # but avoid broad title/talent searches that can consume the enrichment
+        # timeout before the official fallback is reached.
+        terms = [x for x in terms if "keyword" in x or "cid" in x][:1]
+    if title and talent and product.get("maker_id") != "i-one":
         terms.append({"keyword": f"{title} {talent}"})
     elif title:
         terms.append({"keyword": title})
@@ -616,7 +621,10 @@ def main():
     session = requests.Session()
     session.headers.update({"User-Agent": "gravure-dvd-auto/1.0"})
 
-    for product in products:
+    # Process I-ONE first so their FANZA-first lookup plus official fallback
+    # completes even when the global enrichment job is time-constrained.
+    worklist = sorted(products, key=lambda p: 0 if p.get("maker_id") == "i-one" else 1)
+    for product in worklist:
         clear_stale_takeshobo_sample(product)
         if product.get("sample_available") and product.get("sample_video_url") and product.get("maker_id") != "i-one":
             continue
