@@ -92,9 +92,31 @@ def sample_media(item):
     }
 
 
+def title_variants(title):
+    raw = str(title or "").strip()
+    values = [raw]
+    for pattern in (
+        r"【[^】]*】",
+        r"\[[^\]]*\]",
+        r"/4Kあり",
+        r"\s+4Kあり",
+        r"\s*I-ONE\s*TV限定特典映像付き",
+    ):
+        raw = re.sub(pattern, "", raw, flags=re.I)
+    raw = re.sub(r"\s+", " ", raw).strip()
+    if raw and raw not in values:
+        values.append(raw)
+    # The portion before the performer name is often the FANZA/DMM product title.
+    compact = re.sub(r"\s+", " ", raw).strip()
+    if "  " in compact:
+        compact = compact.split("  ", 1)[0].strip()
+    if compact and compact not in values:
+        values.append(compact)
+    return [norm(v) for v in values if norm(v)]
+
 def match_item(items, code, title, model):
     code_n = norm(code)
-    title_n = norm(title)
+    title_ns = title_variants(title)
     model_n = norm(model)
     for item in items:
         item_code = item_code_blob(item)
@@ -102,11 +124,12 @@ def match_item(items, code, title, model):
             return item
     for item in items:
         item_title = item_title_norm(item)
-        if maker_match(item):
-            if title_n and title_n in item_title:
-                return item
-            if model_n and model_n in item_title:
-                return item
+        if not maker_match(item):
+            continue
+        if any(t and (t in item_title or item_title in t) for t in title_ns):
+            return item
+        if model_n and model_n in item_title:
+            return item
     return None
 
 
@@ -128,6 +151,7 @@ def dmm_match(code, title, model, release):
     searches = [
         (str(code or "").strip(), True),
         (str(title or "").strip(), False),
+        *[(v, False) for v in title_variants(title)[1:]],
         (str(model or "").strip(), False),
     ]
     seen = set()
