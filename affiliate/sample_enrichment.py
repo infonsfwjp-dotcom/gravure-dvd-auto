@@ -185,11 +185,11 @@ def public_page_media(source, base_url):
     source = html.unescape(source).replace("\\/", "/")
     videos = []
     patterns = (
-        r'<(?:video|source)[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
-        r'<iframe[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
-        r'<embed[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
-        r'https?://(?:www\\.)?(?:youtube\\.com/embed/|youtu\\.be/)[^"\\'<> ]+',
-        r'https?://[^"\\'<> ]+\\.(?:mp4|m3u8)(?:\\?[^"\\'<> ]*)?',
+        r"<(?:video|source)[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']",
+        r"<iframe[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']",
+        r"<embed[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']",
+        r"https?://(?:www\.)?(?:youtube\.com/embed/|youtu\.be/)[^\"'<> ]+",
+        r"https?://[^\"'<> ]+\.(?:mp4|m3u8)(?:\?[^\"'<> ]*)?",
     )
     for pattern in patterns:
         for match in re.findall(pattern, source, re.I):
@@ -198,11 +198,11 @@ def public_page_media(source, base_url):
             if value:
                 videos.append(value)
     images = []
-    for match in re.findall(r'<img[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']', source, re.I):
+    for match in re.findall(r"<img[^>]+(?:src|data-src)=[\"']([^\"']+)[\"']", source, re.I):
         value = _abs_url(match, base_url)
         if value and re.search(r"\\.(?:jpe?g|png|webp)(?:\\?|$)", value, re.I):
             images.append(value)
-    for match in re.findall(r'https?://[^"\\'<> ]+\\.(?:jpe?g|png|webp)(?:\\?[^"\\'<> ]*)?', source, re.I):
+    for match in re.findall(r"https?://[^\"'<> ]+\.(?:jpe?g|png|webp)(?:\?[^\"'<> ]*)?", source, re.I):
         value = _abs_url(match, base_url)
         if value:
             images.append(value)
