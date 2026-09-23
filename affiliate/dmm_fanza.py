@@ -90,7 +90,7 @@ def inferred_ione_jan(product_code):
     Only use the value as a DMM/FANZA search key; accept it as product data
     only when the API returns an exact JAN/code match.
     """
-    m = re.fullmatch(r"LCDV-(\\d{5})", str(product_code or "").strip(), re.I)
+    m = re.fullmatch(r"LCDV-(\d{5})", str(product_code or "").strip(), re.I)
     if not m:
         return ""
     base = "4529971" + m.group(1)
@@ -125,6 +125,11 @@ def search_keywords(p):
     clean_title = re.sub(r"\s*4Kあり", "", clean_title).strip()
     add(clean_title)
     add(norm(clean_title))
+    # FANZA/DMM often indexes the work title without the performer and
+    # without the I-ONE bonus/4K suffix. Search that human-visible title too.
+    title_core = re.split(r"[/／]", clean_title, maxsplit=1)[0].strip()
+    add(title_core)
+    add(norm(title_core))
     for performer in performer_candidates(p):
         add(performer)
         add(norm(performer))
