@@ -204,7 +204,10 @@ def discover():
     today = date.today(); start = today - timedelta(days=30); end = today + timedelta(days=180); all_items = {}
     floor_ids = find_dvd_floor_ids(); maker_ids = {}
     for maker in MAKERS:
-        maker_ids[maker["id"]] = find_maker_ids(floor_ids, maker); print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
+        maker_ids[maker["id"]] = find_maker_ids(floor_ids, maker)
+        if maker["id"] in KNOWN_DMM_MAKER_IDS:
+            maker_ids[maker["id"]][KNOWN_DMM_MAKER_IDS[maker["id"]]] = maker["name"]
+        print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
     for maker in MAKERS:
         ids = list(maker_ids.get(maker["id"], {}).keys()); cursor = start
         while cursor <= end:
