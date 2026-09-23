@@ -59,7 +59,18 @@ def genre_names(item):
     return names
 
 
+def line_communications_item(item):
+    """Identify Line Communications DVDs from FANZA/DMM catalog data."""
+    hay = norm(" ".join(maker_names(item)))
+    if "ラインコミュニケーションズ" in hay:
+        return True
+    codes = " ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid"))
+    return bool(re.search(r"\blcdv-\d{4,6}\b", codes, re.I))
+
+
 def maker_matches(item, maker, search_keyword=None):
+    if maker["id"] == "i-one" and line_communications_item(item):
+        return True
     hay = " ".join(maker_names(item))
     if any(norm(k) in norm(hay) or norm(hay) in norm(k) for k in maker["keywords"] if hay): return True
     if search_keyword:
@@ -211,7 +222,10 @@ def discover():
     for maker in MAKERS:
         ids = list(maker_ids.get(maker["id"], {}).keys()); cursor = start
         while cursor <= end:
-            window_end = min(cursor + timedelta(days=30), end); queries = [(None, mid) for mid in ids] + [(keyword, None) for keyword in maker["keywords"]]; seen_query_keys = set()
+            window_end = min(cursor + timedelta(days=30), end); queries = [(None, mid) for mid in ids] + [(keyword, None) for keyword in maker["keywords"]]
+            if maker["id"] == "i-one":
+                queries.append(("LCDV-", None))
+            seen_query_keys = set()
             for keyword, maker_id in queries:
                 if (keyword, maker_id) in seen_query_keys: continue
                 seen_query_keys.add((keyword, maker_id)); offset = 1
