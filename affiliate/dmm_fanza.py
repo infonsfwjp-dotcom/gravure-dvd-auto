@@ -172,8 +172,11 @@ def search(p):
         for reserve in ([False, True] if p.get("maker_id") == "i-one" else [False]):
             params = dict(base)
             params.update({"keyword": keyword, "sort": "match"})
-            if p.get("maker_id") == "i-one":
-                params.update({"article": "maker", "article_id": "60091"})
+            # For Line Communications, do not constrain the ItemList keyword query
+            # by the FANZA maker facet: the DMM API maker facet does not reliably
+            # expose all LCDV catalog items even when the public maker page does.
+            # Identity is verified below from title/code/JAN/date; the search remains
+            # entirely inside FANZA/DMM.
             if reserve:
                 params["mono_stock"] = "reserve"
             items, error = request_items(params)
@@ -199,8 +202,6 @@ def search(p):
             "lte_date": date_end,
             "sort": "date",
         })
-        if p.get("maker_id") == "i-one":
-            params.update({"article": "maker", "article_id": "60091"})
         if p.get("maker_id") == "i-one":
             params["mono_stock"] = "reserve"
         items, error = request_items(params)
@@ -240,6 +241,12 @@ def enrich():
     diagnostics = 0
     for p in products:
         p.pop("affiliate_error", None)
+        if p.get("maker_id") == "i-one":
+            p["maker"] = "ラインコミュニケーションズ"
+            p["tags"] = [
+                "ラインコミュニケーションズ" if t == "ラインコミュニケーションズ / I-ONE" else t
+                for t in (p.get("tags") or [])
+            ]
         try:
             ranked = sorted(((score(p, i), i) for i in (search(p))), key=lambda x: x[0], reverse=True)
             if diagnostics < 10:
