@@ -200,17 +200,20 @@ def search(p):
 
     # 1) Normal exact/partial keyword searches.
     for keyword in search_keywords(p):
-        params = dict(base)
-        params.update({"keyword": keyword, "sort": "match"})
-        items, error = request_items(params)
-        if error:
-            last_error = error
-            continue
-        for item in items:
-            key = item.get("product_id") or item.get("content_id") or item.get("URL")
-            if key:
-                all_items[key] = item
-        time.sleep(0.2)
+        for reserve in ([False, True] if p.get("maker_id") == "i-one" else [False]):
+            params = dict(base)
+            params.update({"keyword": keyword, "sort": "match"})
+            if reserve:
+                params["mono_stock"] = "reserve"
+            items, error = request_items(params)
+            if error:
+                last_error = error
+                continue
+            for item in items:
+                key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                if key:
+                    all_items[key] = item
+            time.sleep(0.2)
 
     # 2) Critical fallback: search the entire FANZA DVD catalog for the exact
     #    release date. Upcoming manufacturer pages can precede FANZA indexing,
@@ -225,6 +228,8 @@ def search(p):
             "lte_date": date_end,
             "sort": "date",
         })
+        if p.get("maker_id") == "i-one":
+            params["mono_stock"] = "reserve"
         items, error = request_items(params)
         if error:
             last_error = error
