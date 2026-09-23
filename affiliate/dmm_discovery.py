@@ -22,7 +22,7 @@ OUT = Path(__file__).resolve().parents[1] / "data/products.json"
 
 MAKERS = [
     {"id": "spice_visual", "name": "スパイスビジュアル", "keywords": ["スパイスビジュアル", "Spice Visual"], "strict_idol": False},
-    {"id": "i-one", "name": "ラインコミュニケーションズ / I-ONE", "keywords": ["ラインコミュニケーションズ", "I-ONE", "I ONE"], "strict_idol": False},
+    {"id": "line-communications", "name": "ラインコミュニケーションズ", "keywords": ["ラインコミュニケーションズ"], "strict_idol": False},
     {"id": "takeshobo", "name": "竹書房", "keywords": ["竹書房"], "strict_idol": True},
 ]
 INCLUDE_GENRE = ("アイドル", "グラビア", "イメージ")
