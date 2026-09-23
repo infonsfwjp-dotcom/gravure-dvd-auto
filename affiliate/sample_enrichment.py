@@ -243,13 +243,13 @@ def discover_ione_sample_frames(product, session):
     if product.get("maker_id") != "i-one":
         return []
     code = str(product.get("product_code") or "").strip().upper()
-    if not re.fullmatch(r"LCDV-\d+", code, re.I):
+    m = re.match(r"^(LCDV-\d{2})\d+", code, re.I)
+    if not m:
         return []
-    # I-ONE stores LCDV-41450 as:
-    # Probe this path during enrichment so other product pages receive the same treatment.
-    # /images/sample/LCDV-414/LCDV-41450/001.jpg
-    # i.e. the bucket is the product code with its final two digits removed.
-    bucket = code[:-2]
+    # I-ONE stores the numbered sample gallery for the LCDV-414xx range as:
+    # /images/sample/LCDV-41/LCDV-41450/001.jpg
+    # The first bucket is the two-digit product-series prefix, not code[:-2].
+    bucket = m.group(1)
     base = f"https://file.i-one.tv/images/sample/{bucket}/{code}/"
     out = []
     for n in range(1, 31):
