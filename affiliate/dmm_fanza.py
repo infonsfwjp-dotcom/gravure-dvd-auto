@@ -202,8 +202,8 @@ def search(p):
             "lte_date": date_end,
             "sort": "date",
         })
-        if p.get("maker_id") == "i-one":
-            params["mono_stock"] = "reserve"
+        # Do not force reserve-only here: released Line Communications titles
+        # must also be matchable from the FANZA/DMM catalog by release date.
         items, error = request_items(params)
         if error:
             last_error = error
@@ -249,9 +249,10 @@ def enrich():
             ]
         try:
             ranked = sorted(((score(p, i), i) for i in (search(p))), key=lambda x: x[0], reverse=True)
-            if diagnostics < 10:
+            if diagnostics < 10 or p.get("maker_id") == "i-one":
                 print(diagnostic_line(p, ranked))
-                diagnostics += 1
+                if diagnostics < 10:
+                    diagnostics += 1
             if not ranked:
                 # Never erase a previously verified FANZA/DMM link because a single
                 # API run returned no candidates.
@@ -273,6 +274,8 @@ def enrich():
             if strong_identity and s >= 80 and i.get("affiliateURL"):
                 p["affiliate_url"] = i["affiliateURL"]
                 p["dmm_url"] = i.get("URL") or p["affiliate_url"]
+                if p.get("maker_id") == "i-one" and i.get("URL"):
+                    p["source_url"] = i["URL"]
                 p["affiliate_match_status"] = "matched"
                 matched += 1
             elif s >= 45:
