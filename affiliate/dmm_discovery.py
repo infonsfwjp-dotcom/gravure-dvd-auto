@@ -20,6 +20,8 @@ AFFILIATE_ID = os.getenv("DMM_AFFILIATE_ID", "")
 SITE = "FANZA"
 OUT = Path(__file__).resolve().parents[1] / "data/products.json"
 
+KNOWN_DMM_MAKER_IDS = {"i-one": "60091"}
+
 MAKERS = [
     {"id": "spice_visual", "name": "スパイスビジュアル", "keywords": ["スパイスビジュアル", "Spice Visual"], "strict_idol": False},
     {"id": "i-one", "name": "ラインコミュニケーションズ", "keywords": ["ラインコミュニケーションズ"], "strict_idol": False},
@@ -124,7 +126,7 @@ def sample_media(item):
         return out
     return {
         "cover_image_url": unique(cover, 1)[0] if cover else "",
-        "sample_image_urls": unique(images, 12),
+        "sample_image_urls": unique(images, 15),
         "sample_video_url": unique(movies, 1)[0] if movies else "",
         "sample_available": bool(movies),
     }
@@ -164,6 +166,9 @@ def find_maker_ids(floor_ids, maker):
             if len(makers) < 100: break
             offset += 100; time.sleep(0.1)
         time.sleep(0.1)
+    if not found and maker["id"] in KNOWN_DMM_MAKER_IDS:
+        found[KNOWN_DMM_MAKER_IDS[maker["id"]]] = maker["name"]
+        print(f"  using known DMM maker id {maker[\"id\"]}: {KNOWN_DMM_MAKER_IDS[maker[\"id\"]]}")
     return found
 
 
