@@ -194,6 +194,43 @@ def dmm_match_for_cids(cids, code, title_hint, model_hint):
     return None
 
 
+def discover():
+    if not API_ID or not AFFILIATE_ID: raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
+    today = date.today(); start = today - timedelta(days=30); end = today + timedelta(days=180); all_items = {}
+    floor_ids = find_dvd_floor_ids(); maker_ids = {}
+    for maker in MAKERS:
+        maker_ids[maker["id"]] = find_maker_ids(floor_ids, maker); print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
+    for maker in MAKERS:
+        ids = list(maker_ids.get(maker["id"], {}).keys()); cursor = start
+        while cursor <= end:
+            window_end = min(cursor + timedelta(days=30), end); queries = [(None, mid) for mid in ids] + [(keyword, None) for keyword in maker["keywords"]]; seen_query_keys = set()
+            for keyword, maker_id in queries:
+                if (keyword, maker_id) in seen_query_keys: continue
+                seen_query_keys.add((keyword, maker_id)); offset = 1
+                while offset <= 5000:
+                    params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "gte_date": f"{cursor.isoformat()}T00:00:00", "lte_date": f"{window_end.isoformat()}T23:59:59", "sort": "date", "hits": 100, "offset": offset, "output": "json"}
+                    if cursor >= today: params["mono_stock"] = "reserve"
+                    if maker_id: params["article"] = "maker"; params["article_id"] = maker_id
+                    else: params["keyword"] = keyword
+                    items = request_items(params); print(f"  query maker={maker['id']} keyword={keyword or '-'} maker_id={maker_id or '-'} offset={offset} stock={params.get('mono_stock','all')} items={len(items)}")
+                    for item in items:
+                        if not maker_matches(item, maker, search_keyword=keyword): continue
+                        if maker["strict_idol"] and not is_takeshobo_idol(item): continue
+                        key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                        if key: all_items[(maker["id"], key)] = (maker, item)
+                    if len(items) < 100: break
+                    offset += 100; time.sleep(0.1)
+                time.sleep(0.2)
+            cursor = window_end + timedelta(days=1)
+    products = []
+    for maker, item in all_items.values():
+        title = str(item.get("title") or "").strip(); release_date = str(item.get("date") or "")[:10]; code = str(item.get("maker_product") or item.get("product_id") or item.get("content_id") or "").strip(); jan = re.sub(r"\D", "", str(item.get("jancode") or item.get("jan") or ""))
+        if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date): continue
+        media = sample_media(item)
+        products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan, "talent": talent_names(item), "source_url": item.get("URL") or "", "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "", "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"], "sample_image_urls": media["sample_image_urls"], "sample_video_url": media["sample_video_url"], "sample_available": media["sample_available"], "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
+    products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
+
+
 def main():
     products = discover()
     if not products: raise RuntimeError("DMM discovery returned zero accepted products; refusing to overwrite existing data")
