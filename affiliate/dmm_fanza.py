@@ -85,6 +85,19 @@ def score(p, i):
     return v
 
 
+def inferred_ione_jan(product_code):
+    """Infer the standard Line Communications JAN from an LCDV catalog code.
+    Only use the value as a DMM/FANZA search key; accept it as product data
+    only when the API returns an exact JAN/code match.
+    """
+    m = re.fullmatch(r"LCDV-(\\d{5})", str(product_code or "").strip(), re.I)
+    if not m:
+        return ""
+    base = "4529971" + m.group(1)
+    check = (10 - sum(int(d) * (1 if i % 2 == 0 else 3) for i, d in enumerate(base)) % 10) % 10
+    return base + str(check)
+
+
 def search_keywords(p):
     keywords = []
 
@@ -95,12 +108,14 @@ def search_keywords(p):
 
     jan_raw = str(p.get("jan") or "").strip()
     jan_digits = re.sub(r"\D", "", jan_raw)
+    inferred_jan = inferred_ione_jan(p.get("product_code")) if p.get("maker_id") == "i-one" else ""
     code_raw = str(p.get("product_code") or "").strip()
     code_normalized = norm_code(code_raw)
     title_raw = str(p.get("title") or "").strip()
 
     add(jan_raw)
     add(jan_digits)
+    add(inferred_jan)
     add(code_raw)
     add(code_normalized)
     add(title_raw)
