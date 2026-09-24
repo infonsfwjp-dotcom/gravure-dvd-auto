@@ -11,3 +11,4 @@
 
 # DMM maker catalog primary source 2026-09-24T20:20+09:00
 \n# trigger DMM maker refresh after syntax fix\n
+# trigger fixed DMM maker master refresh
