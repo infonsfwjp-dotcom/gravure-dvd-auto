@@ -225,7 +225,11 @@ def product_page(p):
     maker = display_maker(p.get("maker") or "")
     talent = "、".join(p.get("talent") or [])
     release = str(p.get("release_date") or "")
-    # Product discovery and purchasing stay FANZA/DMM-only. Do not expose legacy manufacturer-site URLs.\n    source = str(p.get("source_url") or "")\n    if p.get("maker_id") == "i-one" and not re.search(r"dmm\.com|fanza", source, re.I):\n        source = ""\n    buy = str(p.get("affiliate_url") or "")
+    # Product discovery and purchasing stay FANZA/DMM-only. Do not expose legacy manufacturer-site URLs.
+    source = str(p.get("source_url") or "")
+    if p.get("maker_id") == "i-one" and not re.search(r"dmm\.com|fanza", source, re.I):
+        source = ""
+    buy = str(p.get("affiliate_url") or "")
     cover_remote = str(p.get("cover_image_url") or "")
     cover = local_media(cover_remote) or cover_remote
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
