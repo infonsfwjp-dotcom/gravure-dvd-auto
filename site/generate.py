@@ -330,10 +330,9 @@ def main():
         meta = f'{title}｜発売日 {p.get("release_date","")}｜{display_maker(p.get("maker") or "")} のグラビアDVD情報'
         html = product_page(p)
         write(rel, title, html, meta)
-        # Also publish an extensionless product route so /products/i-one-LCDV-41448 works.
-        if rel.endswith(".html"):
-            route = rel[:-5]
-            write(route, title, html, meta)
+        # Cloudflare Workers Assets handles the extensionless canonical route via
+        # assets.html_handling = "drop-trailing-slash", which serves this .html asset
+        # at /products/... without exposing the raw extensionless file as a download.
 
     latest = sorted(ps, key=lambda x: x.get("release_date") or "", reverse=True)[:50]
     top_links = '<div class="quick-links"><a href="/months/">月別から探す</a><a href="/makers/">メーカー別から探す</a></div><form class="site-search" action="/" method="get"><label for="q">作品・出演者を検索</label><div class="search-row"><input id="q" name="q" type="search" placeholder="作品名・出演者・メーカー名"><button type="submit">検索</button></div></form>'
