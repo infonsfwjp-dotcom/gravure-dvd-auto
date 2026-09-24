@@ -247,6 +247,19 @@ def discover():
                     offset += 100
                     time.sleep(0.1)
                 time.sleep(0.2)
+            params = {
+                "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
+                "service": "mono", "floor": "dvd", "keyword": "LCDV-41448",
+                "gte_date": f"{start.isoformat()}T00:00:00",
+                "lte_date": f"{end.isoformat()}T23:59:59",
+                "hits": 20, "offset": 1, "output": "json",
+            }
+            items = request_items(params)
+            print(f"  Line Communications exact LCDV-41448 lookup items={len(items)}")
+            for item in items:
+                key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                if key:
+                    all_items[(maker["id"], key)] = (maker, item)
             continue
 
         cursor = start
