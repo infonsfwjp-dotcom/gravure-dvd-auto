@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
     paths-ignore:
+      - "scripts/refresh-affiliate.trigger"
       - "data/products.json"
       - "dist/**"
   workflow_dispatch:
