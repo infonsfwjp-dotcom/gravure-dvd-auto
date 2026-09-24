@@ -132,35 +132,38 @@ def _landscape_sample(images, remote_to_local=None):
 
 
 def local_media(src):
-    """Download remote media during the build so the public site does not depend on DMM hotlinking."""
+    """Mirror DMM/FANZA images when possible; otherwise keep the first-party URL."""
     src = str(src or "")
     if not src.startswith(("http://", "https://")):
         return ""
-    ext = Path(src.split("?", 1)[0]).suffix.lower()
-    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
-        ext = ".jpg"
-    name = hashlib.sha256(src.encode("utf-8")).hexdigest()[:24] + ext
-    path = MEDIA / name
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists() and path.stat().st_size > 1024:
-        return "/media/" + name
-    try:
-        import requests
-        r = requests.get(
-            src,
-            headers={
-                "User-Agent": "Mozilla/5.0 (compatible; gravure-dvd-auto/1.0)",
-                "Referer": "https://www.dmm.co.jp/",
-            },
-            timeout=20,
-        )
-        content_type = (r.headers.get("content-type") or "").lower()
-        if r.ok and (content_type.startswith("image/") or ext in {".jpg", ".jpeg", ".png", ".webp", ".gif"}) and len(r.content) > 1024:
-            path.write_bytes(r.content)
+    candidates = [src]
+    if "pics.dmm.co.jp/mono/movie/adult/" in src and src.lower().endswith("pl.jpg"):
+        candidates.append(src[:-6] + "pt.jpg")
+    for candidate in candidates:
+        ext = Path(candidate.split("?", 1)[0]).suffix.lower()
+        if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+            ext = ".jpg"
+        name = hashlib.sha256(candidate.encode("utf-8")).hexdigest()[:24] + ext
+        path = MEDIA / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and path.stat().st_size > 1024:
             return "/media/" + name
-    except Exception:
-        pass
-    # If build-time mirroring is blocked by the CDN, preserve the first-party DMM/FANZA URL.
+        try:
+            import requests
+            r = requests.get(
+                candidate,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (compatible; gravure-dvd-auto/1.0)",
+                    "Referer": "https://www.dmm.co.jp/",
+                },
+                timeout=20,
+            )
+            content_type = (r.headers.get("content-type") or "").lower()
+            if r.ok and (content_type.startswith("image/") or ext in {".jpg", ".jpeg", ".png", ".webp", ".gif"}) and len(r.content) > 1024:
+                path.write_bytes(r.content)
+                return "/media/" + name
+        except Exception:
+            pass
     return src
 
 
