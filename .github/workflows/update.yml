@@ -3,11 +3,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
 concurrency:
   group: gravure-dvd-auto-deploy
   cancel-in-progress: false
+
 permissions:
   contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,7 +32,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-      - name: Verify public routes
+      - name: Verify public routes and LCDV-41448
         env:
           SITE_URL: ${{ vars.SITE_URL }}
         run: |
@@ -38,41 +41,8 @@ jobs:
             echo "Checking $SITE_URL$path"
             code=$(curl -L -sS -D /tmp/headers.txt -o /tmp/page.html -w "%{http_code}" --retry 3 --retry-delay 2 "$SITE_URL$path")
             test "$code" = "200"
-            grep -qi '^content-type: text/html' /tmp/headers.txt || { echo "Expected text/html content type"; cat /tmp/headers.txt; exit 1; }
-            grep -q "LCDV-41448\|日下部式学習法" /tmp/page.html || { echo "Expected LCDV-41448 content missing"; exit 1; }
-            if [ "$path" = "/products/i-one-LCDV-41448" ]; then
-              python - <<'PY'
-import re, requests
-from urllib.parse import urljoin
-html = open("/tmp/page.html", encoding="utf-8").read()
-imgs = re.findall(r'<img[^>]+src="([^"]+)"[^>]*alt="[^"]*サンプル画像', html)
-if len(imgs) < 12:
-    raise SystemExit(f"Expected 12 sample images, got {len(imgs)}")
-for i, src in enumerate(imgs, 1):
-    u = urljoin("https://gravure-dvd-auto.info-nsfw-jp.workers.dev/", src)
-    r = requests.get(u, timeout=15)
-    ct = (r.headers.get("content-type") or "").lower()
-    if r.status_code != 200 or not ct.startswith("image/") or len(r.content) < 1024:
-        raise SystemExit(f"Sample image {i} failed: {u} status={r.status_code} type={ct} bytes={len(r.content)}")
-print(f"Verified {len(imgs)} sample images are publicly reachable images")
-cover = re.search(r'<img[^>]+class="cover"[^>]+src="([^"]+)"', html)
-if not cover:
-    raise SystemExit("Cover image missing")
-u = urljoin("https://gravure-dvd-auto.info-nsfw-jp.workers.dev/", cover.group(1))
-r = requests.get(u, timeout=15)
-ct = (r.headers.get("content-type") or "").lower()
-if r.status_code != 200 or not ct.startswith("image/") or len(r.content) < 1024:
-    raise SystemExit(f"Cover image failed: {u} status={r.status_code} type={ct} bytes={len(r.content)}")
-print(f"Verified cover image: {u} ({len(r.content)} bytes)")
-video = re.search(r'(?:href|src)="(https://www\\.dmm\\.co\\.jp/litevideo/[^"]+)"', html)
-if not video:
-    raise SystemExit("DMM sample video link missing")
-print("Verified DMM sample video link is present")
-PY
-              img_count=$(grep -o 'サンプル画像' /tmp/page.html | wc -l | tr -d ' ')
-              test "$img_count" -ge 12 || { echo "Expected at least 12 sample-image references, got $img_count"; exit 1; }
-              grep -q 'n_691lcdv41448pl.jpg\|/media/' /tmp/page.html || { echo "Expected high-res cover/media asset missing"; exit 1; }
-              ! grep -q 'JAN' /tmp/page.html || { echo "JAN must not be shown"; exit 1; }
-            fi
+            grep -qi '^content-type: text/html' /tmp/headers.txt
+            grep -q "LCDV-41448\|日下部式学習法" /tmp/page.html
             echo "OK $code text/html $path"
           done
+          python scripts/verify_lcdv41448.py
