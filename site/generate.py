@@ -57,7 +57,13 @@ def slug(x):
 
 
 def product_path(p):
-    return f"/products/{slug(p.get('maker_id'))}-{slug(p.get('product_code') or p.get('jan') or p.get('title'))}.html"
+    maker_id = str(p.get("maker_id") or "")
+    code = str(p.get("product_code") or p.get("jan") or p.get("title") or "")
+    if maker_id == "i-one":
+        m = re.search(r"lcdv[-_ ]?(\\d{4,6})", code, re.I)
+        if m:
+            code = f"LCDV-{m.group(1)}"
+    return f"/products/{slug(maker_id)}-{slug(code)}.html"
 
 
 def url(path):
