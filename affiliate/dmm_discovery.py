@@ -224,7 +224,8 @@ def discover():
         while cursor <= end:
             window_end = min(cursor + timedelta(days=30), end); queries = [(None, mid) for mid in ids] + [(keyword, None) for keyword in maker["keywords"]]
             if maker["id"] == "i-one":
-                queries.append(("LCDV-", None))
+                # FANZA/DMM keyword lookup: exact product code and talent/name terms.
+                queries.extend([("LCDV-41448", None), ("日下部ほたる", None), ("どんどんやる気になる", None)])
             seen_query_keys = set()
             for keyword, maker_id in queries:
                 if (keyword, maker_id) in seen_query_keys: continue
