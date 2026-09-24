@@ -40,5 +40,11 @@ jobs:
             test "$code" = "200"
             grep -qi '^content-type: text/html' /tmp/headers.txt || { echo "Expected text/html content type"; cat /tmp/headers.txt; exit 1; }
             grep -q "LCDV-41448\|日下部式学習法" /tmp/page.html || { echo "Expected LCDV-41448 content missing"; exit 1; }
+            if [ "$path" = "/products/i-one-LCDV-41448" ]; then
+              img_count=$(grep -o 'サンプル画像' /tmp/page.html | wc -l | tr -d ' ')
+              test "$img_count" -ge 12 || { echo "Expected at least 12 sample-image references, got $img_count"; exit 1; }
+              grep -q 'n_691lcdv41448pl.jpg\|/media/' /tmp/page.html || { echo "Expected high-res cover/media asset missing"; exit 1; }
+              ! grep -q 'JAN' /tmp/page.html || { echo "JAN must not be shown"; exit 1; }
+            fi
             echo "OK $code text/html $path"
           done
