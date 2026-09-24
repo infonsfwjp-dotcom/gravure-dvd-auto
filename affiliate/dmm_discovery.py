@@ -251,18 +251,27 @@ def discover():
             # release-date window. Retry the confirmed Line Communications maker
             # IDs without the date filter; the product date is validated below.
             if maker["id"] == "i-one":
+                # FANZA's maker/date facet is inconsistent for Line Communications:
+                # confirmed maker IDs can return zero rows when a date range is
+                # supplied. Query every discovered Line Communications maker ID
+                # without the date facet, then apply the desired release window
+                # locally. This keeps discovery FANZA/DMM-only while capturing
+                # current LCDV releases such as LCDV-41448.
                 for maker_id in ids:
-                    if maker_id not in set(KNOWN_DMM_MAKER_IDS.values()):
-                        continue
                     offset = 1
                     while offset <= 5000:
                         params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "sort": "date", "hits": 100, "offset": offset, "output": "json", "article": "maker", "article_id": maker_id}
                         items = request_items(params)
                         print(f"  query maker={maker['id']} keyword=- maker_id={maker_id} offset={offset} stock=any_date items={len(items)}")
                         for item in items:
+                            release_date = str(item.get("date") or "")[:10]
+                            if not (start.isoformat() <= release_date <= end.isoformat()):
+                                continue
                             key = item.get("product_id") or item.get("content_id") or item.get("URL")
-                            if key: all_items[(maker["id"], key)] = (maker, item)
-                        if len(items) < 100: break
+                            if key:
+                                all_items[(maker["id"], key)] = (maker, item)
+                        if len(items) < 100:
+                            break
                         offset += 100
                     time.sleep(0.2)
             cursor = window_end + timedelta(days=1)
