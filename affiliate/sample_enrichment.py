@@ -126,9 +126,8 @@ def fanza_search(product, session):
     if code:
         terms.append({"keyword": code})
     if product.get("maker_id") == "i-one":
-        # I-ONE products are code-addressable on FANZA. Keep FANZA first,
-        # but avoid broad title/talent searches that can consume the enrichment
-        # timeout before the official fallback is reached.
+        # Line Communications products are resolved from FANZA/DMM only.
+        # Keep exact CID/product-code lookups and avoid broad searches.
         terms = [x for x in terms if "keyword" in x or "cid" in x][:1]
     if title and talent and product.get("maker_id") != "i-one":
         terms.append({"keyword": f"{title} {talent}"})
