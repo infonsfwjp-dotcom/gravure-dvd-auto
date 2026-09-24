@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: gravure-dvd-auto-main-write
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   enrich:
