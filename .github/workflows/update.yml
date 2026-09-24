@@ -26,6 +26,13 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL }}
         run: python site/generate.py
+      - name: Verify generated LCDV-41448 asset before deploy
+        run: |
+          set -e
+          test -s dist/products/i-one-LCDV-41448.html
+          grep -q "LCDV-41448\|日下部式学習法" dist/products/i-one-LCDV-41448.html
+          test "$(grep -o 'サンプル画像' dist/products/i-one-LCDV-41448.html | wc -l | tr -d ' ')" -ge 12
+          echo "Generated LCDV-41448 asset is present and contains 12+ sample-image references"
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
