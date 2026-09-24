@@ -212,40 +212,40 @@ def dmm_match_for_cids(cids, code, title_hint, model_hint):
 
 def discover():
     if not API_ID or not AFFILIATE_ID: raise RuntimeError("DMM_API_ID / DMM_AFFILIATE_ID are not configured")
-    today = date.today(); start = today - timedelta(days=30); end = today + timedelta(days=180); all_items = {}
+    today = date.today(); start = date(2026, 6, 1); end = today + timedelta(days=180); all_items = {}
     floor_ids = find_dvd_floor_ids(); maker_ids = {}
     for maker in MAKERS:
         maker_ids[maker["id"]] = find_maker_ids(floor_ids, maker)
         if maker["id"] in KNOWN_DMM_MAKER_IDS:
             maker_ids[maker["id"]][KNOWN_DMM_MAKER_IDS[maker["id"]]] = maker["name"]
         print(f"  maker ids {maker['id']}: {maker_ids[maker['id']]}")
-    # Line Communications: query the confirmed FANZA/DMM maker catalog once,
-    # then apply the release-date window locally. The maker+date facet is unreliable.
-    line_ids = list(maker_ids.get("i-one", {}).keys())
+    # Line Communications: use the confirmed FANZA/DMM manufacturer ID directly.
+    # Keep only releases from 2026-06-01 onward; copy the returned catalog fields as-is.
     for maker in MAKERS:
         ids = list(maker_ids.get(maker["id"], {}).keys())
         if maker["id"] == "i-one":
+            line_ids = ["60091"]
             for maker_id in line_ids:
                 offset = 1
                 while offset <= 5000:
                     params = {
                         "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
-                        "service": "mono", "floor": "dvd", "sort": "date",
-                        "hits": 100, "offset": offset, "output": "json",
+                        "service": "mono", "floor": "dvd",
+                        "gte_date": f"{start.isoformat()}T00:00:00",
+                        "lte_date": f"{end.isoformat()}T23:59:59",
+                        "sort": "date", "hits": 100, "offset": offset, "output": "json",
                         "article": "maker", "article_id": maker_id,
                     }
                     items = request_items(params)
                     print(f"  Line Communications maker_id={maker_id} offset={offset} items={len(items)}")
                     for item in items:
-                        release_date = str(item.get("date") or "")[:10]
-                        if not (start.isoformat() <= release_date <= end.isoformat()):
-                            continue
                         key = item.get("product_id") or item.get("content_id") or item.get("URL")
                         if key:
                             all_items[(maker["id"], key)] = (maker, item)
                     if len(items) < 100:
                         break
                     offset += 100
+                    time.sleep(0.1)
                 time.sleep(0.2)
             continue
 
