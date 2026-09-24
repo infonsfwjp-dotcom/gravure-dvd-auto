@@ -378,46 +378,15 @@ def discover():
     for maker in MAKERS:
         ids = list(maker_ids.get(maker["id"], {}).keys())
         if maker["id"] == "i-one":
-            line_ids = ["60091"]
-            for maker_id in line_ids:
-                offset = 1
-                while offset <= 5000:
-                    params = {
-                        "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
-                        "service": "mono", "floor": "dvd",
-                        "gte_date": f"{start.isoformat()}T00:00:00",
-                        "lte_date": f"{end.isoformat()}T23:59:59",
-                        "sort": "date", "hits": 100, "offset": offset, "output": "json",
-                        "article": "maker", "article_id": maker_id,
-                    }
-                    items = request_items(params)
-                    print(f"  Line Communications maker_id={maker_id} offset={offset} items={len(items)}")
-                    for item in items:
-                        key = item.get("product_id") or item.get("content_id") or item.get("URL")
-                        if key:
-                            all_items[(maker["id"], key)] = (maker, item)
-                    if len(items) < 100:
-                        break
-                    offset += 100
-                    time.sleep(0.1)
-                time.sleep(0.2)
-            params = {
-                "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
-                "service": "mono", "floor": "dvd", "keyword": "LCDV-41448",
-                "gte_date": f"{start.isoformat()}T00:00:00",
-                "lte_date": f"{end.isoformat()}T23:59:59",
-                "hits": 20, "offset": 1, "output": "json",
-            }
-            items = request_items(params)
-            print(f"  Line Communications exact LCDV-41448 keyword lookup items={len(items)}")
-            for item in items:
-                key = item.get("product_id") or item.get("content_id") or item.get("URL")
-                if key:
-                    all_items[(maker["id"], key)] = (maker, item)
+            # Primary source: the public DMM maker catalog for maker_id=60091.
+            # The Affiliate API is used only to resolve each catalog CID into
+            # structured fields and an affiliate URL.
+            listed = dmm_items_from_maker_list(maker, start.isoformat())
+            for key, item in listed.items():
+                all_items[(maker["id"], key)] = (maker, item)
 
-            # Priority recovery for LCDV-41448: FANZA/DMM sometimes returns zero
-            # results for the maker/keyword search even when the exact CID is
-            # directly resolvable. Keep this lookup FANZA/DMM-only.
+            # Keep an exact CID recovery path for LCDV-41448 in case the maker
+            # page exposes the product before the API indexes its maker facet.
             cid_items = request_items({
                 "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
                 "service": "mono", "floor": "dvd", "cid": "n_691lcdv41448",
@@ -429,9 +398,11 @@ def discover():
                 code_fields = " ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid"))
                 if "lcdv41448" not in norm(code_fields) and "n_691lcdv41448" not in raw:
                     continue
-                key = item.get("product_id") or item.get("content_id") or item.get("URL")
-                if key:
-                    all_items[(maker["id"], key)] = (maker, item)
+                release_date = str(item.get("date") or "")[:10]
+                if release_date and release_date >= start.isoformat():
+                    key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                    if key:
+                        all_items[(maker["id"], key)] = (maker, item)
             continue
 
         cursor = start
@@ -476,7 +447,7 @@ def discover():
         if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date): continue
         media = sample_media(item)
         products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan, "talent": talent_names(item), "source_url": item.get("URL") or "", "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "", "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"], "sample_image_urls": media["sample_image_urls"], "sample_video_url": media["sample_video_url"], "sample_available": media["sample_available"], "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
-    products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
+    products = dedupe_limited_products(products)\n    products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
 
 
 def main():
