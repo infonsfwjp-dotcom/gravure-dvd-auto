@@ -1,1 +1,31 @@
-name: deploy-site\non:\n  workflow_dispatch:\nconcurrency:\n  group: gravure-dvd-auto-deploy\n  cancel-in-progress: true\npermissions:\n  contents: read\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: "3.11"\n      - name: Install site dependencies\n        run: pip install -r requirements.txt\n      - name: Generate static site\n        env:\n          SITE_URL: ${{ vars.SITE_URL }}\n        run: python site/generate.py\n      - name: Deploy to Cloudflare Workers\n        uses: cloudflare/wrangler-action@v3\n        with:\n          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}\n          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}\n          command: deploy\n
+name: deploy-site
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: gravure-dvd-auto-deploy
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install site dependencies
+        run: pip install -r requirements.txt
+      - name: Generate static site
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: python site/generate.py
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
