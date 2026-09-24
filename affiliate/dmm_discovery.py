@@ -449,7 +449,9 @@ def discover():
         if not title or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", release_date): continue
         media = sample_media(item)
         products.append({"maker": maker["name"], "maker_id": maker["id"], "title": title, "release_date": release_date, "product_code": code, "jan": jan, "talent": talent_names(item), "source_url": item.get("URL") or "", "affiliate_url": item.get("affiliateURL") or "", "dmm_url": item.get("URL") or "", "affiliate_match_status": "matched" if item.get("affiliateURL") else "unmatched", "status": "upcoming" if release_date >= today.isoformat() else "released", "cover_image_url": media["cover_image_url"], "sample_image_urls": media["sample_image_urls"], "sample_video_url": media["sample_video_url"], "sample_available": media["sample_available"], "tags": [release_date[:4]+"年", release_date[:7]+"月", release_date[:7]+"発売", maker["name"]]})
-    products = dedupe_limited_products(products)\n    products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True); return products
+    products = dedupe_limited_products(products)
+    products.sort(key=lambda p: (p["release_date"], p["maker"], p["title"]), reverse=True)
+    return products
 
 
 def main():
