@@ -2,7 +2,7 @@ name: auto-update
 on:
   push:
   schedule:
-    - cron: "17 18 * * *" # 03:17 JST
+    - cron: "*/5 * * * *" # temporary accelerated refresh # 03:17 JST
   workflow_dispatch:
   repository_dispatch:
     types: [refresh]
