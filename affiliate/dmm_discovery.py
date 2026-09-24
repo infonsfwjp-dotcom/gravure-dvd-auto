@@ -274,6 +274,27 @@ def discover():
                             break
                         offset += 100
                     time.sleep(0.2)
+                # FANZA keyword lookup without a date facet catches Line Communications
+                # LCDV releases that are absent from the maker facet.
+                offset = 1
+                while offset <= 5000:
+                    params = {"api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE, "service": "mono", "floor": "dvd", "sort": "date", "hits": 100, "offset": offset, "output": "json", "keyword": "LCDV-"}
+                    items = request_items(params)
+                    print(f"  query maker={maker['id']} keyword=LCDV- maker_id=- offset={offset} stock=any_date items={len(items)}")
+                    for item in items:
+                        release_date = str(item.get("date") or "")[:10]
+                        code = str(item.get("maker_product") or item.get("product_id") or item.get("content_id") or "")
+                        if not (start.isoformat() <= release_date <= end.isoformat()):
+                            continue
+                        if not re.search(r"lcdv-\\d{4,6}", code, re.I):
+                            continue
+                        key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                        if key:
+                            all_items[(maker["id"], key)] = (maker, item)
+                    if len(items) < 100:
+                        break
+                    offset += 100
+                time.sleep(0.2)
             cursor = window_end + timedelta(days=1)
     products = []
     for maker, item in all_items.values():
