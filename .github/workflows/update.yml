@@ -52,3 +52,5 @@ jobs:
             echo "OK $code text/html $path"
           done
           python scripts/verify_lcdv41448.py
+
+# force deploy
