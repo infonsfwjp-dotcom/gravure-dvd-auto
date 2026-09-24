@@ -34,7 +34,7 @@ jobs:
           test "$(grep -o 'サンプル画像' dist/products/i-one-LCDV-41448.html | wc -l | tr -d ' ')" -ge 12
           echo "Generated LCDV-41448 asset is present and contains 12+ sample-image references"
       - name: Install pinned Wrangler
-        run: npm install --no-save wrangler@4.138.0
+        run: npm ci
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
