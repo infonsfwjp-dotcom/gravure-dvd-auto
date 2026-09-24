@@ -48,6 +48,13 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL }}
         run: python site/generate.py
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
       - name: Post newly discovered releases to X
         continue-on-error: true
         env:
