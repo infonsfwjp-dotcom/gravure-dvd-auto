@@ -293,8 +293,8 @@ def product_page(p):
     if p.get("maker_id") == "i-one" and not re.search(r"dmm\.com|fanza", source, re.I):
         source = ""
     buy = str(p.get("affiliate_url") or "")
-    cover_remote = str(p.get("cover_image_url") or "")
-    cover = local_media(cover_remote) or cover_remote
+    cover_remote = preferred_cover_url(p.get("cover_image_url") or "")
+    cover = local_media(cover_remote)
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
     title_unreleased = title.startswith("タイトル未定")
     sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))]
@@ -340,8 +340,6 @@ def product_page(p):
             ("出演", talent),
             ("発売日", release),
             ("品番", p.get("product_code")),
-            ("JAN", p.get("jan")),
-            
         ):
             if value:
                 info_rows.append(f"<tr><th>{esc(label)}</th><td>{esc(value)}</td></tr>")
