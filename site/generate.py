@@ -291,8 +291,16 @@ def product_page(p):
         ):
             if value:
                 info_rows.append(f"<tr><th>{esc(label)}</th><td>{esc(value)}</td></tr>")
-        details = f'<div class="product-details"><div class="product-head"><span class="badge">{("サンプル映像あり" if has_sample else "サンプル画像あり")}</span><span class="product-status">発売日 {esc(release)}</span></div><h2 class="product-title">{esc(title)}</h2><table class="meta product-info">{"".join(info_rows)}</table><div class="actions">{"".join(actions) if actions else ""}</div></div>'
-        body = f'<article><div class="box"><div class="product-top">{details}</div><div class="product-media">{media or ""}</div></div>{review}<p class="back"><a href="/">← 新作一覧へ戻る</a></p></article>'
+        genre_items = "".join(f"<span>{esc(str(g))}</span>" for g in (p.get("genres") or []))
+        description = str(p.get("product_description") or "").strip()
+        cover_html = f'<div class="product-cover"><img class="cover" src="{esc(cover)}" alt="{esc(title)}" loading="eager"></div>' if cover else ""
+        description_html = f'<div class="product-description">{esc(description)}</div>' if description else ""
+        genres_html = f'<div class="genres">{genre_items}</div>' if genre_items else ""
+        details = f'<div class="product-details"><div class="product-head"><span class="badge">{("サンプル映像あり" if has_sample else "サンプル画像あり")}</span><span class="product-status">発売日 {esc(release)}</span></div><h2 class="product-title">{esc(title)}</h2>{description_html}{genres_html}<table class="meta product-info">{"".join(info_rows)}</table><div class="actions">{"".join(actions) if actions else ""}</div></div>'
+        media_without_cover = media
+        if cover and media_without_cover.startswith(f'<img class="cover" src="{esc(cover)}" alt="{esc(title)}" loading="eager">'):
+            media_without_cover = media_without_cover[len(f'<img class="cover" src="{esc(cover)}" alt="{esc(title)}" loading="eager">'):]
+        body = f'<article><div class="box"><div class="product-hero">{cover_html}{details}</div><div class="product-media">{media_without_cover}</div></div>{review}<p class="back"><a href="/">← 新作一覧へ戻る</a></p></article>'
         return body
 
     rows = []
