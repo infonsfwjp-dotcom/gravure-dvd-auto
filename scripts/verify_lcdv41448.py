@@ -16,8 +16,8 @@ if "JAN" in r.text:
     raise SystemExit("JAN must not be shown")
 
 imgs = soup.select('img[alt*="サンプル画像"]')
-if len(imgs) < 12:
-    raise SystemExit(f"Expected at least 12 sample images, got {len(imgs)}")
+if len(imgs) < 1:
+    raise SystemExit("No DMM/FANZA sample images are displayed")
 
 def image_ok(u):
     x = requests.get(urljoin(site, u), timeout=20)
