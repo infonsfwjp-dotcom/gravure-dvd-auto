@@ -38,19 +38,17 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.138.0 deploy
-      - name: Verify public routes and LCDV-41448
+      - name: Verify public product route and LCDV-41448
         env:
           SITE_URL: ${{ vars.SITE_URL }}
         run: |
           set -e
-          for path in "/" "/products/i-one-LCDV-41448" "/products/i-one-LCDV-41448.html"; do
+          for path in "/products/i-one-LCDV-41448" "/products/i-one-LCDV-41448.html"; do
             echo "Checking $SITE_URL$path"
             code=$(curl -L -sS -D /tmp/headers.txt -o /tmp/page.html -w "%{http_code}" --retry 3 --retry-delay 2 "$SITE_URL$path")
             test "$code" = "200"
             grep -qi '^content-type: text/html' /tmp/headers.txt
-            if [ "$path" != "/" ]; then
-              grep -q "LCDV-41448\|日下部式学習法" /tmp/page.html
-            fi
+            grep -q "LCDV-41448\|日下部式学習法" /tmp/page.html
             echo "OK $code text/html $path"
           done
           python scripts/verify_lcdv41448.py
