@@ -9,7 +9,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: gravure-dvd-auto-main-write
+  group: gravure-dvd-auto-update
   cancel-in-progress: false
 jobs:
   update:
