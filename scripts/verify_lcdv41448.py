@@ -8,8 +8,9 @@ site = os.environ["SITE_URL"].rstrip("/") + "/"
 url = urljoin(site, "products/i-one-LCDV-41448")
 r = requests.get(url, timeout=20)
 r.raise_for_status()
+r.encoding = r.apparent_encoding or "utf-8"
 soup = BeautifulSoup(r.text, "html.parser")
-print(f"Public page bytes={len(r.content)} title={soup.title.get_text(strip=True) if soup.title else '<none>'}")
+print(f"Public page bytes={len(r.content)} title={soup.title.get_text(strip=True) if soup.title else '<none>'} encoding={r.encoding}")
 print(f"Has LCDV={('LCDV-41448' in r.text)} Has title={('日下部式学習法' in r.text)}")
 
 if "LCDV-41448" not in r.text or "日下部式学習法" not in r.text:
