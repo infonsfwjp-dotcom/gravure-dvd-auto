@@ -1,0 +1,43 @@
+name: refresh-lcdv-41448
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - affiliate/refresh_lcdv.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lcdv-41448-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Refresh LCDV-41448 from DMM/FANZA
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
+        run: python affiliate/refresh_lcdv.py
+      - name: Commit product data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/products.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: refresh LCDV-41448 DMM media"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
