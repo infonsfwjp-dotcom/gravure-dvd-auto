@@ -80,12 +80,12 @@ def crawl_dmm_maker_list(maker_id, start_date):
                 if parent is None:
                     break
                 text = parent.get_text(" ", strip=True)
-                if re.search(r"\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}", text):
+                if re.search(r"\d{4}[./-]\d{1,2}[./-]\d{1,2}", text):
                     card = parent
                     break
                 card = parent
             text = card.get_text(" ", strip=True)
-            dates = re.findall(r"(20\\d{2})[./-](\\d{1,2})[./-](\\d{1,2})", text)
+            dates = re.findall(r"(20\d{2})[./-](\d{1,2})[./-](\d{1,2})", text)
             release = ""
             for y, mo, d in dates:
                 candidate = f"{y}-{int(mo):02d}-{int(d):02d}"
