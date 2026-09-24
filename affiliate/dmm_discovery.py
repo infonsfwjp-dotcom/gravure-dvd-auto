@@ -22,6 +22,160 @@ OUT = Path(__file__).resolve().parents[1] / "data/products.json"
 
 KNOWN_DMM_MAKER_IDS = {"i-one": "60091"}
 
+DMM_MAKER_LIST_URLS = {
+    "i-one": [
+        "https://www.dmm.com/mono/dvd/-/list/=/article=maker/id=60091/",
+        "https://www.dmm.co.jp/mono/dvd/-/list/=/article=maker/id=60091/",
+    ],
+}
+DMM_LIST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+    "Accept-Language": "ja-JP,ja;q=0.9,en;q=0.8",
+}
+
+def _absolute_url(base, href):
+    from urllib.parse import urljoin
+    return urljoin(base, href)
+
+def crawl_dmm_maker_list(maker_id, start_date):
+    """Use the public DMM maker list as the primary catalog source.
+
+    The Affiliate API maker search is only an enrichment layer.  The maker
+    list determines which products belong to Line Communications.
+    """
+    urls = DMM_MAKER_LIST_URLS.get(maker_id) or []
+    session = requests.Session()
+    session.headers.update(DMM_LIST_HEADERS)
+    visited = set()
+    product_cids = []
+    product_meta = {}
+    queue = list(urls)
+    pages = 0
+
+    while queue and pages < 100:
+        url = queue.pop(0)
+        if url in visited:
+            continue
+        visited.add(url)
+        try:
+            r = session.get(url, timeout=30)
+            r.raise_for_status()
+        except Exception as exc:
+            print(f"  DMM maker list fetch failed url={url} error={exc}")
+            continue
+        pages += 1
+        soup = BeautifulSoup(r.text, "html.parser")
+        page_cids = []
+        for a in soup.find_all("a", href=True):
+            href = _absolute_url(url, unquote(unquote(a.get("href", ""))))
+            m = re.search(r"/(?:mono/dvd)/-/detail/=/cid=([a-zA-Z0-9_-]+)", href, re.I)
+            if not m:
+                continue
+            cid = m.group(1).lower()
+            if cid in product_meta:
+                continue
+            card = a
+            for _ in range(5):
+                parent = getattr(card, "parent", None)
+                if parent is None:
+                    break
+                text = parent.get_text(" ", strip=True)
+                if re.search(r"\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}", text):
+                    card = parent
+                    break
+                card = parent
+            text = card.get_text(" ", strip=True)
+            dates = re.findall(r"(20\\d{2})[./-](\\d{1,2})[./-](\\d{1,2})", text)
+            release = ""
+            for y, mo, d in dates:
+                candidate = f"{y}-{int(mo):02d}-{int(d):02d}"
+                if candidate >= start_date:
+                    release = candidate
+                    break
+            product_meta[cid] = {"cid": cid, "release_date": release, "url": href, "text": text[:1000]}
+            page_cids.append(cid)
+            if cid not in product_cids:
+                product_cids.append(cid)
+
+        # Follow pagination exposed by the page itself.  Do not guess DMM's
+        # pagination format; only follow links that actually exist in HTML.
+        next_candidates = []
+        for a in soup.find_all("a", href=True):
+            href = _absolute_url(url, unquote(unquote(a.get("href", ""))))
+            label = a.get_text(" ", strip=True)
+            if href in visited:
+                continue
+            if re.search(r"(?:page(?:=|/)|p=|/page/)", href, re.I) or re.search(r"次|次へ|next|›|»", label, re.I):
+                next_candidates.append(href)
+        for nxt in next_candidates:
+            if nxt not in visited and nxt not in queue:
+                queue.append(nxt)
+
+        print(f"  DMM maker list page={pages} products={len(page_cids)} queue={len(queue)} url={url}")
+        if not page_cids and not next_candidates:
+            break
+
+    return product_cids, product_meta
+
+def dmm_items_from_maker_list(maker, start_date):
+    """Resolve maker-list CIDs into structured FANZA/DMM item records."""
+    cids, meta = crawl_dmm_maker_list(maker["id"], start_date)
+    out = {}
+    for idx, cid in enumerate(cids, 1):
+        try:
+            items = request_items({
+                "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
+                "service": "mono", "floor": "dvd", "cid": cid,
+                "hits": 20, "offset": 1, "output": "json",
+            })
+        except Exception as exc:
+            print(f"  DMM maker CID failed cid={cid} error={exc}")
+            continue
+        for item in items:
+            if not line_communications_item(item):
+                raw = norm(json.dumps(item, ensure_ascii=False))
+                if "lcdv" not in raw:
+                    continue
+            release_date = str(item.get("date") or "")[:10] or meta.get(cid, {}).get("release_date", "")
+            if not release_date or release_date < start_date:
+                continue
+            key = item.get("product_id") or item.get("content_id") or item.get("URL") or cid
+            out[key] = item
+        if idx % 20 == 0:
+            print(f"  DMM maker list resolved {idx}/{len(cids)}")
+        time.sleep(0.08)
+    print(f"  DMM maker list source={maker['name']} cids={len(cids)} resolved={len(out)}")
+    return out
+
+def dedupe_limited_products(products):
+    """Drop limited/bonus variants when a normal DVD for the same work exists."""
+    def base_title(title):
+        s = str(title or "")
+        s = re.sub(r"【[^】]*(?:限定|特典|チェキ)[^】]*】", "", s)
+        s = re.sub(r"\\[[^\\]]*(?:限定|特典|チェキ)[^\\]]*\\]", "", s)
+        s = re.sub(r"(?:I-ONE TV)?限定(?:版|盤)?", "", s, flags=re.I)
+        s = re.sub(r"(?:特典|チェキ)(?:映像|付き|付)?", "", s)
+        return norm(s)
+    groups = {}
+    for p in products:
+        key = (p.get("maker_id"), p.get("release_date"), base_title(p.get("title")))
+        groups.setdefault(key, []).append(p)
+    kept = []
+    removed = 0
+    markers = ("限定", "特典", "チェキ")
+    for group in groups.values():
+        normal = [p for p in group if not any(m in str(p.get("title") or "") for m in markers)]
+        if normal:
+            for p in group:
+                if any(m in str(p.get("title") or "") for m in markers):
+                    removed += 1
+                else:
+                    kept.append(p)
+        else:
+            kept.extend(group)
+    print(f"  limited duplicate removal={removed}")
+    return kept
+
 MAKERS = [
     {"id": "spice_visual", "name": "スパイスビジュアル", "keywords": ["スパイスビジュアル", "Spice Visual"], "strict_idol": False},
     {"id": "i-one", "name": "ラインコミュニケーションズ", "keywords": ["ラインコミュニケーションズ"], "strict_idol": False},
