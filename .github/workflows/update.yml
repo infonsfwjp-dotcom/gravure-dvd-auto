@@ -36,8 +36,9 @@ jobs:
           set -e
           for path in "/" "/products/i-one-LCDV-41448" "/products/i-one-LCDV-41448.html"; do
             echo "Checking $SITE_URL$path"
-            code=$(curl -L -sS -o /tmp/page.html -w "%{http_code}" --retry 3 --retry-delay 2 "$SITE_URL$path")
+            code=$(curl -L -sS -D /tmp/headers.txt -o /tmp/page.html -w "%{http_code}" --retry 3 --retry-delay 2 "$SITE_URL$path")
             test "$code" = "200"
+            grep -qi '^content-type: text/html' /tmp/headers.txt || { echo "Expected text/html content type"; cat /tmp/headers.txt; exit 1; }
             grep -q "LCDV-41448\|日下部式学習法" /tmp/page.html || { echo "Expected LCDV-41448 content missing"; exit 1; }
-            echo "OK $code $path"
+            echo "OK $code text/html $path"
           done
