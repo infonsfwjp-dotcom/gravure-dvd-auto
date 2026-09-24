@@ -70,6 +70,8 @@ def crawl_dmm_maker_list(maker_id, start_date):
             href = _absolute_url(url, unquote(unquote(a.get("href", ""))))
             m = re.search(r"/(?:mono/dvd)/-/detail/=/cid=([a-zA-Z0-9_-]+)", href, re.I)
             if not m:
+                m = re.search(r"(?:^|[?&])cid=([a-zA-Z0-9_-]+)", href, re.I)
+            if not m:
                 continue
             cid = m.group(1).lower()
             if cid in product_meta:
@@ -105,7 +107,7 @@ def crawl_dmm_maker_list(maker_id, start_date):
             label = a.get_text(" ", strip=True)
             if href in visited:
                 continue
-            if re.search(r"(?:page(?:=|/)|p=|/page/)", href, re.I) or re.search(r"次|次へ|next|›|»", label, re.I):
+            if re.search(r"(?:page(?:=|/)|p=|/page/|offset=|/p/)", href, re.I) or re.search(r"次|次へ|next|›|»", label, re.I):
                 next_candidates.append(href)
         for nxt in next_candidates:
             if nxt not in visited and nxt not in queue:
