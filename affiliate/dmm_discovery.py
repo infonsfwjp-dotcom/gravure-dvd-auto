@@ -255,8 +255,26 @@ def discover():
                 "hits": 20, "offset": 1, "output": "json",
             }
             items = request_items(params)
-            print(f"  Line Communications exact LCDV-41448 lookup items={len(items)}")
+            print(f"  Line Communications exact LCDV-41448 keyword lookup items={len(items)}")
             for item in items:
+                key = item.get("product_id") or item.get("content_id") or item.get("URL")
+                if key:
+                    all_items[(maker["id"], key)] = (maker, item)
+
+            # Priority recovery for LCDV-41448: FANZA/DMM sometimes returns zero
+            # results for the maker/keyword search even when the exact CID is
+            # directly resolvable. Keep this lookup FANZA/DMM-only.
+            cid_items = request_items({
+                "api_id": API_ID, "affiliate_id": AFFILIATE_ID, "site": SITE,
+                "service": "mono", "floor": "dvd", "cid": "n_691lcdv41448",
+                "hits": 20, "offset": 1, "output": "json",
+            })
+            print(f"  Line Communications exact CID n_691lcdv41448 lookup items={len(cid_items)}")
+            for item in cid_items:
+                raw = norm(json.dumps(item, ensure_ascii=False))
+                code_fields = " ".join(str(item.get(k) or "") for k in ("maker_product", "product_id", "content_id", "cid"))
+                if "lcdv41448" not in norm(code_fields) and "n_691lcdv41448" not in raw:
+                    continue
                 key = item.get("product_id") or item.get("content_id") or item.get("URL")
                 if key:
                     all_items[(maker["id"], key)] = (maker, item)
