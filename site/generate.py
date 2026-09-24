@@ -160,9 +160,15 @@ def local_media(src):
             return "/media/" + name
     except Exception:
         pass
-    return ""
+    # If build-time mirroring is blocked by the CDN, preserve the first-party DMM/FANZA URL.
+    return src
 
 
+def preferred_cover_url(src):
+    src = str(src or "")
+    if "pics.dmm.co.jp/mono/movie/adult/" in src and src.lower().endswith("pt.jpg"):
+        return src[:-6] + "pl.jpg"
+    return src
 
 
 def page(title, body, canonical_path="/", description="グラビアDVDの新発売情報を月別・メーカー別に自動更新"):
