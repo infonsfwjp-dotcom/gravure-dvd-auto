@@ -19,7 +19,7 @@ jobs:
           import urllib.request
           import json
 
-          params = {
+params = {
     "api_id": os.environ["API_ID"],
     "affiliate_id": os.environ["AFFILIATE_ID"],
     "site": "FANZA",
