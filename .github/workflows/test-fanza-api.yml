@@ -25,7 +25,7 @@ jobs:
               "site": "DMM",
               "service": "mono",
               "floor": "dvd",
-              "cid": "n_691lcdv41448",
+              "keyword": "LCDV-41448",
               "output": "json"
           }
 
