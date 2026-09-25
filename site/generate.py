@@ -327,7 +327,7 @@ def product_page(p):
         media += '<div class="cover cover-placeholder" role="img" aria-label="ジャケット画像未公開"><div>JACKET IMAGE</div><span>ジャケット画像は公開後に表示されます</span></div>'
     if has_sample:
         video_thumb = cover
-        media += '<section class="media-section sample-video sample-featured"><div class="section-kicker">FREE SAMPLE</div><h3>サンプル映像</h3>'
+        media += '<section class="media-section sample-video sample-featured"><div class="section-kicker">SAMPLE MOVIE</div>'
         if re.search(r"\.(?:mp4|m3u8)(?:$|[?#])", sample_video, re.I):
             media += f'<div class="video-shell"><video class="sample-video-player" controls playsinline preload="metadata" poster="{esc(poster or video_thumb)}"><source src="{esc(sample_video)}"></video></div>'
         elif video_thumb:
@@ -336,7 +336,7 @@ def product_page(p):
             media += f'<iframe src="{esc(sample_video)}" title="{esc(title)} サンプル映像" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe><div class="sample-help">映像が表示されない場合は、<a href="{esc(sample_video)}" target="_blank" rel="noopener">サンプル映像を別画面で開く</a>ことができます。</div>'
         media += '</section>'
     if sample_images:
-        media += '<section class="media-section sample-video sample-images"><div class="section-kicker">SAMPLE GALLERY</div><h3>サンプル画像</h3><div class="gallery sample-gallery">'
+        media += '<section class="media-section sample-video sample-images"><div class="section-kicker">SAMPLE GALLERY</div><div class="gallery sample-gallery">'
         media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="lazy" decoding="async"></a>' for img in sample_images)
         media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></section>'
 
@@ -357,7 +357,7 @@ def product_page(p):
         cover_html = f'<div class="product-cover"><img class="cover" src="{esc(cover)}" alt="{esc(title)}" loading="eager"></div>' if cover else ""
         description_html = f'<div class="product-description">{esc(description)}</div>' if description else ""
         genres_html = f'<div class="genres">{genre_items}</div>' if genre_items else ""
-        details = f'<div class="product-details"><div class="product-kicker">PRODUCT INFORMATION</div><div class="product-head"><span class="badge">{("サンプル映像あり" if has_sample else "サンプル画像あり")}</span><span class="product-status">発売日 {esc(release)}</span></div><h2 class="product-title">{esc(title)}</h2>{description_html}{genres_html}<table class="meta product-info">{"".join(info_rows)}</table><div class="actions">{"".join(actions) if actions else ""}</div></div>'
+        details = f'<div class="product-details"><div class="product-head"><span class="badge">{("サンプル映像あり" if has_sample else "サンプル画像あり")}</span><span class="product-status">発売日 {esc(release)}</span></div><h2 class="product-title">{esc(title)}</h2>{description_html}{genres_html}<table class="meta product-info">{"".join(info_rows)}</table><div class="actions">{"".join(actions) if actions else ""}</div></div>'
         media_without_cover = media
         if cover and media_without_cover.startswith(f'<img class="cover" src="{esc(cover)}" alt="{esc(title)}" loading="eager">'):
             media_without_cover = media_without_cover[len(f'<img class="cover" src="{esc(cover)}" alt="{esc(title)}" loading="eager">'):]
