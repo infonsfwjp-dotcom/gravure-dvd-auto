@@ -22,7 +22,7 @@ jobs:
 params = {
     "api_id": os.environ["API_ID"],
     "affiliate_id": os.environ["AFFILIATE_ID"],
-    "site": "FANZA",
+    "site": "DMM.com",
     "service": "mono",
     "floor": "dvd",
     "cid": "n_691lcdv41448",
