@@ -337,7 +337,7 @@ def product_page(p):
         media += '</section>'
     if sample_images:
         media += '<section class="media-section sample-video sample-images"><div class="section-kicker">SAMPLE GALLERY</div><div class="gallery sample-gallery">'
-        media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="lazy" decoding="async"></a>' for img in sample_images)
+        media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="eager" decoding="sync"></a>' for img in sample_images)
         media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></section>'
 
     if has_sample or sample_images:
