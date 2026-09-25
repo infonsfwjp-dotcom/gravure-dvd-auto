@@ -55,7 +55,7 @@ if not video:
     raise SystemExit("DMM sample video link missing")
 print("Verified DMM sample video link")
 
-for marker in ("product-shell", "product-hero", "sample-gallery", "FREE SAMPLE", "SAMPLE GALLERY"):
+for marker in ("product-shell", "product-hero", "sample-gallery", "SAMPLE MOVIE", "SAMPLE GALLERY"):
     if marker not in r.text:
         raise SystemExit(f"Visual section marker missing: {marker}")
 print("Verified LCDV-41448 visual layout markers")
