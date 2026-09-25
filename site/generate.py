@@ -307,12 +307,12 @@ def product_page(p):
     # DMM may return a generic placeholder before an upcoming title's jacket is publicly released.
     title_unreleased = title.startswith("タイトル未定")
     sample_images_remote = [str(x) for x in (p.get("sample_image_urls") or []) if str(x).startswith(("http://", "https://"))]
-    sample_images = [local_media(x) or x for x in sample_images_remote]
+    sample_images = sample_images_remote  # Keep DMM sample URLs direct; avoid broken local /media mirrors.
     if title_unreleased and not sample_images_remote:
         cover = ""
     sample_video = str(p.get("sample_video_url") or "")
     has_sample = bool(p.get("sample_available") and sample_video)
-    poster = _landscape_sample(sample_images, lambda x: local_media(x)) if sample_images else cover
+    poster = cover
 
     actions = []
     if buy:
