@@ -43,6 +43,8 @@ jobs:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
         run: python -m affiliate.dmm_fanza
+      - name: Refresh DMM samplepickup images (num=1..15)
+        run: python -m affiliate.dmm_samplepickup
       - name: Clean sample gallery assets
         run: python -m affiliate.clean_sample_media
       - name: Generate static site
