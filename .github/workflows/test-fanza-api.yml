@@ -20,14 +20,14 @@ jobs:
           import json
 
           params = {
-              "api_id": os.environ["API_ID"],
-              "affiliate_id": os.environ["AFFILIATE_ID"],
-              "site": "DMM",
-              "service": "mono",
-              "floor": "dvd",
-              "keyword": "LCDV-41448",
-              "output": "json"
-          }
+    "api_id": os.environ["API_ID"],
+    "affiliate_id": os.environ["AFFILIATE_ID"],
+    "site": "FANZA",
+    "service": "mono",
+    "floor": "dvd",
+    "cid": "n_691lcdv41448",
+    "output": "json"
+    }
 
           url = (
               "https://api.dmm.com/affiliate/v3/ItemList?"
