@@ -1,0 +1,46 @@
+
+name: Test FANZA API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch product data
+        env:
+          API_ID: ${{ secrets.DMM_API_ID }}
+          AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
+        run: |
+          python - <<'PY'
+          import os
+          import urllib.parse
+          import urllib.request
+          import json
+
+          params = {
+              "api_id": os.environ["API_ID"],
+              "affiliate_id": os.environ["AFFILIATE_ID"],
+              "site": "FANZA",
+              "service": "digital",
+              "floor": "videoa",
+              "cid": "n_691lcdv41448",
+              "output": "json"
+          }
+
+          url = (
+              "https://api.dmm.com/affiliate/v3/ItemList?"
+              + urllib.parse.urlencode(params)
+          )
+
+          req = urllib.request.Request(
+              url,
+              headers={"User-Agent": "Mozilla/5.0"}
+          )
+
+          with urllib.request.urlopen(req, timeout=30) as response:
+              data = json.loads(response.read().decode("utf-8"))
+
+          print(json.dumps(data, ensure_ascii=False, indent=2))
+          PY
