@@ -64,7 +64,7 @@ def main() -> None:
                     if absolute.startswith("https://") and IMAGE_RE.search(absolute):
                         candidates.append(absolute)
                 # DMM may embed the sample asset URL in script/JSON markup.
-                for raw in re.findall(r"""https?:\\?/\\?/[^"'\\s<>]+?\\.(?:jpg|jpeg|png|webp)(?:\\?[^"'\\s<>]*)?""", response.text, re.I):
+                for raw in re.findall(r'''https?://[^\"'\s<>]+?\.(?:jpg|jpeg|png|webp)(?:\?[^\"'\s<>]*)?''', response.text, re.I):
                     candidates.append(raw.replace("\\/", "/"))
 
             accepted = False
