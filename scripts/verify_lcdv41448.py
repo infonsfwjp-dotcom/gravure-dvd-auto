@@ -1,4 +1,5 @@
 import os
+import hashlib
 from urllib.parse import urljoin
 
 import requests
@@ -33,11 +34,17 @@ def image_ok(u):
     )
     return magic, x.status_code, len(b), x.headers.get("content-type", "")
 
+sample_hashes = set()
 for i, img in enumerate(imgs, 1):
     src = img.get("src", "")
     ok, status, size, ct = image_ok(src)
     if not ok:
         raise SystemExit(f"Sample image {i} failed: {src} status={status} type={ct} bytes={size}")
+    content = requests.get(urljoin(site, src), timeout=20).content
+    digest = hashlib.sha256(content).hexdigest()
+    if digest in sample_hashes:
+        raise SystemExit(f"Sample image {i} is a duplicate image/placeholder: {src}")
+    sample_hashes.add(digest)
 print(f"Verified {len(imgs)} sample images as real image bytes")
 
 cover = soup.select_one("img.cover")
