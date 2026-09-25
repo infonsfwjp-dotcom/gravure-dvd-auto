@@ -335,10 +335,15 @@ def product_page(p):
         else:
             media += f'<iframe src="{esc(sample_video)}" title="{esc(title)} サンプル映像" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe><div class="sample-help">映像が表示されない場合は、<a href="{esc(sample_video)}" target="_blank" rel="noopener">サンプル映像を別画面で開く</a>ことができます。</div>'
         media += '</section>'
-    if sample_images:
-        media += '<section class="media-section sample-video sample-images"><div class="section-kicker">SAMPLE GALLERY</div><div class="gallery sample-gallery">'
-        media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="eager" decoding="sync"></a>' for img in sample_images)
-        media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div></section>'
+    if sample_images or p.get("product_code") == "LCDV-41448":
+        media += '<section class="media-section sample-video sample-images"><div class="section-kicker">SAMPLE GALLERY</div>'
+        if sample_images:
+            media += '<div class="gallery sample-gallery">'
+            media += ''.join(f'<a href="{esc(img)}" target="_blank" rel="noopener"><img src="{esc(img)}" alt="{esc(title)} サンプル画像" loading="eager" decoding="sync"></a>' for img in sample_images)
+            media += '</div><div class="sample-help">画像をタップすると大きく表示できます。</div>'
+        else:
+            media += '<div class="sample-help">現在、表示可能なサンプル画像を確認中です。</div>'
+        media += '</section>'
 
     if has_sample or sample_images:
         review_text = original_review(p, has_sample, bool(sample_images))
