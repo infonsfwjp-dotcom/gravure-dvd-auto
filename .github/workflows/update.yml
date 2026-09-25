@@ -22,6 +22,8 @@ jobs:
           python-version: "3.11"
       - name: Install site dependencies
         run: pip install -r requirements.txt
+      - name: Refresh DMM samplepickup images (num=1..15)
+        run: python -m affiliate.dmm_samplepickup
       - name: Generate static site
         env:
           SITE_URL: ${{ vars.SITE_URL }}
